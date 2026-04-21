@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+motor
+pydantic
+pydantic-settings
+python-dotenv
+python-multipart
+jose[cryptography]
+passlib[bcrypt]
+google-generativeai
+openai
+anthropic
+cors
+httpx
