@@ -93,11 +93,15 @@ export const analyzeCompetitors = async (competitorLinks: string[], type: 'linke
 export const suggestPersonas = async (brand: BrandKB, isPro: boolean = false): Promise<Persona[]> => {
   const prompt = `Definisci 3 target persona strategicamente rilevanti per il brand ${brand.name}. 
   Ritorna un array JSON di oggetti. 
-  IMPORTANTE: Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "name", "role", "pains", "goals".
+  Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "name", "role", "pains", "goals".
   I contenuti devono essere in italiano.`;
   const result = await callAI(prompt, "Marketing Expert & Strategist", isPro);
-  const personas = parseJsonFromAI(result.text);
-  return (personas || []).map((p: any) => ({ 
+  const data = parseJsonFromAI(result.text);
+  
+  // Gestione flessibile se l'AI avvolge l'array in un oggetto (es. { "personas": [...] })
+  const personas = Array.isArray(data) ? data : (data.personas || data.items || data.targets || []);
+  
+  return personas.map((p: any) => ({ 
     id: Math.random().toString(36).substring(2, 11),
     name: p.name || p.nome || '',
     role: p.role || p.professione || p.ruolo || '',
@@ -115,11 +119,14 @@ export const generateSinglePersonaDetails = async (brand: BrandKB, name: string,
 export const suggestPillars = async (brand: BrandKB, isPro: boolean = false): Promise<Pillar[]> => {
   const prompt = `Identifica 4 Content Pillars fondamentali per la comunicazione di ${brand.name}. 
   Ritorna un array JSON di oggetti. 
-  IMPORTANTE: Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "title", "description".
+  Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "title", "description".
   I contenuti devono essere in italiano.`;
   const result = await callAI(prompt, "Brand Architect & Content Strategist", isPro);
-  const pillars = parseJsonFromAI(result.text);
-  return (pillars || []).map((p: any) => ({ 
+  const data = parseJsonFromAI(result.text);
+  
+  const pillars = Array.isArray(data) ? data : (data.pillars || data.items || data.pillars_list || []);
+  
+  return pillars.map((p: any) => ({ 
     id: Math.random().toString(36).substring(2, 11),
     title: p.title || p.titolo || '',
     description: p.description || p.descrizione || ''
