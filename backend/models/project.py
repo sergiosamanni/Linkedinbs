@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional, Any, Dict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
+from typing import List, Optional, Any, Dict, Union
 from datetime import datetime
 
 class BrandFile(BaseModel):
@@ -74,11 +74,25 @@ class Persona(BaseModel):
     secondaryPillars: Optional[List[str]] = []
     mappingRationale: Optional[str] = None
 
+    @field_validator('pains', 'goals', 'role', 'name', mode='before')
+    @classmethod
+    def convert_list_to_str(cls, v):
+        if isinstance(v, list):
+            return '. '.join(str(item) for item in v)
+        return v
+
 class Pillar(BaseModel):
     model_config = ConfigDict(extra="allow")
     id: str
     title: str
     description: Optional[str] = ""
+
+    @field_validator('description', 'title', mode='before')
+    @classmethod
+    def convert_list_to_str(cls, v):
+        if isinstance(v, list):
+            return '. '.join(str(item) for item in v)
+        return v
 
 class CalendarPost(BaseModel):
     model_config = ConfigDict(extra="allow")
