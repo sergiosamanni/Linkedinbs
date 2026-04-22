@@ -81,7 +81,7 @@ const Layout: React.FC<LayoutProps> = ({
       {/* Sidebar Stretta (Brand Switcher) */}
       <aside className="w-16 bg-slate-900 flex flex-col items-center border-r border-slate-800 z-30 shrink-0">
         <div className="w-full flex flex-col items-center pt-6 pb-4 shrink-0">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black text-lg mb-4">B</div>
+          <div className="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-black text-lg mb-4 shadow-lg shadow-blue-900/20 ring-1 ring-white/10">B</div>
           <div className="w-8 h-[1px] bg-slate-800 mb-2" />
         </div>
 
@@ -113,7 +113,9 @@ const Layout: React.FC<LayoutProps> = ({
                   ) : displayUrl ? (
                     <img src={displayUrl} alt={project.brand.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-[10px] font-bold">{project.brand.name.substring(0, 2).toUpperCase()}</span>
+                    <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-500 text-[10px] font-black">
+                      {project.brand.name.substring(0, 2).toUpperCase()}
+                    </div>
                   )}
 
                   {/* Overlay per caricamento sulla favicon attiva */}
@@ -218,7 +220,16 @@ const Layout: React.FC<LayoutProps> = ({
             <span className="text-blue-600">v2.0 Orchestrator</span>
           </div>
           <div className="ml-auto flex items-center space-x-4">
-             <img src={user.avatarUrl} className="w-8 h-8 rounded-lg" alt="Avatar" />
+            <div className="flex items-center space-x-3">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest hidden sm:block">{user.name}</span>
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} className="w-9 h-9 rounded-xl border border-slate-200 object-cover shadow-sm" alt={user.name} />
+              ) : (
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-black shadow-lg shadow-blue-100">
+                  {user.name.substring(0, 2).toUpperCase()}
+                </div>
+              )}
+            </div>
           </div>
         </header>
         <div className="flex-1 overflow-y-auto p-8 max-w-6xl mx-auto w-full no-scrollbar">
