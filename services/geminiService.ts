@@ -43,15 +43,35 @@ export const refineBrandField = async (field: string, value: string, isPro: bool
 
 export const suggestRelevantSectors = async (brand: BrandKB, isPro: boolean = false): Promise<SuggestedSector[]> => {
   const system = "Agisci come un esperto di Business Development.";
-  const prompt = `Identifica 5 settori per il brand ${brand.name}. Ritorna un array JSON.`;
+  const prompt = `Identifica 5 settori o mercati strategici per il brand ${brand.name}. 
+  Ritorna un array JSON di oggetti.
+  Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "sector", "rationale", "targetRoles" (un array di oggetti con "role" e "focus").
+  I contenuti devono essere in italiano.`;
   const result = await callAI(prompt, system, isPro);
-  return parseJsonFromAI(result.text);
+  const data = parseJsonFromAI(result.text);
+  
+  // Gestione flessibile se l'AI avvolge l'array in un oggetto (es. { "sectors": [...] })
+  let sectors = Array.isArray(data) ? data : (data.sectors || data.items || data.suggestions || []);
+  
+  return sectors.map((s: any) => ({
+    sector: s.sector || s.settore || '',
+    rationale: s.rationale || s.motivo || s.motivazione || '',
+    targetRoles: Array.isArray(s.targetRoles) ? s.targetRoles.map((r: any) => ({
+      role: r.role || r.ruolo || r.professione || '',
+      focus: r.focus || r.obiettivo || ''
+    })) : (Array.isArray(s.ruoli_target) ? s.ruoli_target.map((r: any) => ({
+      role: r.role || r.ruolo || r.professione || '',
+      focus: r.focus || r.obiettivo || ''
+    })) : [])
+  }));
 };
 
 export const suggestStrategyObjectives = async (brand: BrandKB, platform: Platform, isPro: boolean = false): Promise<string[]> => {
-  const prompt = `Suggerisci 3 obiettivi strategici mensili per ${brand.name} su ${platform}. Ritorna un array JSON di stringhe.`;
+  const prompt = `Suggerisci 3 obiettivi strategici mensili per ${brand.name} su ${platform}. 
+  Ritorna ESATTAMENTE un array JSON di stringhe, senza nient'altro. Ad esempio: ["Obiettivo 1", "Obiettivo 2"]`;
   const result = await callAI(prompt, "Strategist", isPro);
-  return parseJsonFromAI(result.text);
+  const data = parseJsonFromAI(result.text);
+  return Array.isArray(data) ? data : (data.objectives || data.items || data.obiettivi || []);
 };
 
 export const generateMonthlyStrategy = async (
