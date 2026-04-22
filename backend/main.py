@@ -5,6 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
 from database import connect_to_mongo, close_mongo_connection, get_db
 from services.llm_service import llm_service
 from routes import auth, projects
@@ -20,6 +23,14 @@ async def lifespan(app: FastAPI):
     await close_mongo_connection()
 
 app = FastAPI(title="Linkedin Brand Strategist API", lifespan=lifespan)
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    print(f"ERRORE VALIDAZIONE: {exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors(), "body": exc.body},
+    )
 
 # Configurazione CORS Universale
 app.add_middleware(
