@@ -91,10 +91,19 @@ export const analyzeCompetitors = async (competitorLinks: string[], type: 'linke
 };
 
 export const suggestPersonas = async (brand: BrandKB, isPro: boolean = false): Promise<Persona[]> => {
-  const prompt = `Definisci 3 target persona per ${brand.name}. Ritorna un array JSON.`;
-  const result = await callAI(prompt, "Marketing Expert", isPro);
+  const prompt = `Definisci 3 target persona strategicamente rilevanti per il brand ${brand.name}. 
+  Ritorna un array JSON di oggetti. 
+  IMPORTANTE: Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "name", "role", "pains", "goals".
+  I contenuti devono essere in italiano.`;
+  const result = await callAI(prompt, "Marketing Expert & Strategist", isPro);
   const personas = parseJsonFromAI(result.text);
-  return personas.map((p: any) => ({ ...p, id: Math.random().toString(36).substring(2, 11) }));
+  return (personas || []).map((p: any) => ({ 
+    id: Math.random().toString(36).substring(2, 11),
+    name: p.name || p.nome || '',
+    role: p.role || p.professione || p.ruolo || '',
+    pains: p.pains || p.bisogni || p.sfide || '',
+    goals: p.goals || p.valori || p.obiettivi || ''
+  }));
 };
 
 export const generateSinglePersonaDetails = async (brand: BrandKB, name: string, role: string, isPro: boolean = false): Promise<{pains: string, goals: string}> => {
@@ -104,10 +113,17 @@ export const generateSinglePersonaDetails = async (brand: BrandKB, name: string,
 };
 
 export const suggestPillars = async (brand: BrandKB, isPro: boolean = false): Promise<Pillar[]> => {
-  const prompt = `Identifica 4 Content Pillars per ${brand.name}. Ritorna JSON.`;
-  const result = await callAI(prompt, "Architect", isPro);
+  const prompt = `Identifica 4 Content Pillars fondamentali per la comunicazione di ${brand.name}. 
+  Ritorna un array JSON di oggetti. 
+  IMPORTANTE: Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "title", "description".
+  I contenuti devono essere in italiano.`;
+  const result = await callAI(prompt, "Brand Architect & Content Strategist", isPro);
   const pillars = parseJsonFromAI(result.text);
-  return pillars.map((p: any) => ({ ...p, id: Math.random().toString(36).substring(2, 11) }));
+  return (pillars || []).map((p: any) => ({ 
+    id: Math.random().toString(36).substring(2, 11),
+    title: p.title || p.titolo || '',
+    description: p.description || p.descrizione || ''
+  }));
 };
 
 export const generateSinglePillarDetails = async (brand: BrandKB, title: string, isPro: boolean = false): Promise<{description: string}> => {
