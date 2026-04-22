@@ -36,13 +36,13 @@ class Persona(BaseModel):
     id: str
     name: str
     role: str
-    pains: str
-    goals: str
+    pains: Optional[str] = ""
+    goals: Optional[str] = ""
 
 class Pillar(BaseModel):
     id: str
     title: str
-    description: str
+    description: Optional[str] = ""
 
 class CalendarPost(BaseModel):
     id: str
