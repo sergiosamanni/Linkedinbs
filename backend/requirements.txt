@@ -3,9 +3,10 @@ uvicorn
 motor
 pydantic
 pydantic-settings
+email-validator
 python-dotenv
 python-multipart
-python-jose[cryptography]
+PyJWT
 passlib[bcrypt]
 google-generativeai
 openai
