@@ -132,6 +132,17 @@ const toStr = (v: any): string => {
   return '';
 };
 
+// Helper universale: estrae il primo array da un oggetto JSON
+const extractArray = (data: any): any[] => {
+  if (Array.isArray(data)) return data;
+  if (typeof data === 'object' && data !== null) {
+    const arrayKey = Object.keys(data).find(k => Array.isArray(data[k]));
+    if (arrayKey) return data[arrayKey];
+  }
+  console.error('extractArray: nessun array trovato in', JSON.stringify(data).substring(0, 200));
+  return [];
+};
+
 export const suggestPersonas = async (brand: BrandKB, isPro: boolean = false): Promise<Persona[]> => {
   const prompt = `Definisci 3 target persona strategicamente rilevanti per il brand ${brand.name}. 
   Ritorna un array JSON di oggetti. 
@@ -139,9 +150,11 @@ export const suggestPersonas = async (brand: BrandKB, isPro: boolean = false): P
   I contenuti devono essere in italiano.`;
   const result = await callAI(prompt, "Marketing Expert & Strategist", isPro);
   const data = parseJsonFromAI(result.text);
+  const personas = extractArray(data);
   
-  // Gestione flessibile se l'AI avvolge l'array in un oggetto (es. { "personas": [...] })
-  const personas = Array.isArray(data) ? data : (data.personas || data.items || data.targets || []);
+  if (personas.length === 0) {
+    console.error('suggestPersonas: array vuoto. Risposta AI:', result.text.substring(0, 300));
+  }
   
   return personas.map((p: any) => ({ 
     id: Math.random().toString(36).substring(2, 11),
@@ -168,12 +181,16 @@ export const suggestPillars = async (brand: BrandKB, isPro: boolean = false): Pr
   const result = await callAI(prompt, "Brand Architect & Content Strategist", isPro);
   const data = parseJsonFromAI(result.text);
   
-  const pillars = Array.isArray(data) ? data : (data.pillars || data.items || data.pillars_list || []);
+  const pillars = extractArray(data);
+  
+  if (pillars.length === 0) {
+    console.error('suggestPillars: array vuoto. Risposta AI:', result.text.substring(0, 300));
+  }
   
   return pillars.map((p: any) => ({ 
     id: Math.random().toString(36).substring(2, 11),
     title: p.title || p.titolo || '',
-    description: p.description || p.descrizione || ''
+    description: toStr(p.description || p.descrizione)
   }));
 };
 
