@@ -109,7 +109,10 @@ const App: React.FC = () => {
   useEffect(() => {
     if (user && isInitialized && !fetchingProjects) {
       setIsSaving(true);
-      storageService.saveProjects(user.id, projects).finally(() => {
+      storageService.saveProjects(user.id, projects).catch(err => {
+        console.error("Autosave failed:", err);
+        // Silently fail but log it for now, or optionally alert
+      }).finally(() => {
         // Mock delay for smoother UI feedback
         setTimeout(() => setIsSaving(false), 800);
       });
