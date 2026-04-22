@@ -40,7 +40,7 @@ class LLMService:
                 print(f"Tentativo generazione con {provider_name}...")
                 # Timeout di 45 secondi per evitare blocchi infiniti
                 result = await asyncio.wait_for(
-                    self._call_provider(provider_name, api_key, prompt, system_instruction, is_pro),
+                    self._call_provider(provider_name, api_key, prompt, system_instruction, is_pro, user_settings),
                     timeout=45.0
                 )
                 
@@ -54,7 +54,7 @@ class LLMService:
         
         raise Exception(f"Tutti i provider LLM hanno fallito: {'; '.join(errors)}")
 
-    async def _call_provider(self, name: str, api_key: str, prompt: str, system: str, is_pro: bool):
+    async def _call_provider(self, name: str, api_key: str, prompt: str, system: str, is_pro: bool, settings: dict = None):
         if name == "gemini":
             return await self._call_gemini(api_key, prompt, system, is_pro)
         elif name == "openai":
@@ -62,9 +62,11 @@ class LLMService:
         elif name == "anthropic":
             return await self._call_anthropic(api_key, prompt, system, is_pro)
         elif name == "openrouter":
-            return await self._call_openai(api_key, prompt, system, is_pro, base_url="https://openrouter.ai/api/v1")
+            custom_model = settings.get("openrouterModel") if settings else None
+            return await self._call_openai(api_key, prompt, system, is_pro, base_url="https://openrouter.ai/api/v1", custom_model=custom_model)
         elif name == "deepseek":
-            return await self._call_openai(api_key, prompt, system, is_pro, base_url="https://api.deepseek.com")
+            custom_model = settings.get("deepseekModel") if settings else None
+            return await self._call_openai(api_key, prompt, system, is_pro, base_url="https://api.deepseek.com", custom_model=custom_model)
         return None
 
     async def _call_gemini(self, api_key: str, prompt: str, system: str, is_pro: bool):
@@ -86,13 +88,17 @@ class LLMService:
         )
         return response.text
 
-    async def _call_openai(self, api_key: str, prompt: str, system: str, is_pro: bool, base_url: str = None):
+    async def _call_openai(self, api_key: str, prompt: str, system: str, is_pro: bool, base_url: str = None, custom_model: str = None):
         client = AsyncOpenAI(api_key=api_key, base_url=base_url)
-        model = "gpt-4o" if is_pro else "gpt-4o-mini"
-        if base_url and "deepseek" in base_url:
-            model = "deepseek-chat"
-        elif base_url and "openrouter" in base_url:
-            model = "anthropic/claude-3.5-sonnet" if is_pro else "google/gemini-flash-1.5"
+        
+        if custom_model:
+            model = custom_model
+        else:
+            model = "gpt-4o" if is_pro else "gpt-4o-mini"
+            if base_url and "deepseek" in base_url:
+                model = "deepseek-chat"
+            elif base_url and "openrouter" in base_url:
+                model = "anthropic/claude-3.5-sonnet" if is_pro else "google/gemini-flash-1.5"
 
         response = await client.chat.completions.create(
             model=model,

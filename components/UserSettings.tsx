@@ -132,6 +132,37 @@ const UserSettings: React.FC<Props> = ({ user, onUpdate }) => {
                       className="w-full pl-10 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-medium focus:bg-white focus:border-blue-500 outline-none transition-all"
                     />
                   </div>
+                  
+                  {/* Custom Model Inputs */}
+                  {p.id === 'openrouter' && (
+                    <div className="mt-2 pl-2">
+                       <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                        ID Modello OpenRouter (opzionale - default: Claude 3.5 Sonnet)
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.openrouterModel || ''}
+                        onChange={(e) => setSettings({ ...settings, openrouterModel: e.target.value })}
+                        placeholder="es: qwen/qwen-2.5-coder-32b-instruct"
+                        className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-bold focus:bg-white focus:border-purple-500 outline-none transition-all"
+                      />
+                    </div>
+                  )}
+
+                  {p.id === 'deepseek' && (
+                    <div className="mt-2 pl-2">
+                       <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                        ID Modello DeepSeek (opzionale - default: deepseek-chat)
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.deepseekModel || ''}
+                        onChange={(e) => setSettings({ ...settings, deepseekModel: e.target.value })}
+                        placeholder="es: deepseek-reasoner"
+                        className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-bold focus:bg-white focus:border-indigo-500 outline-none transition-all"
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

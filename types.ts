@@ -10,6 +10,8 @@ export interface ApiKeys {
 export interface UserSettings {
   preferredModel: string;
   useCustomKeys: boolean;
+  openrouterModel?: string;
+  deepseekModel?: string;
 }
 
 export interface User {
@@ -18,8 +20,8 @@ export interface User {
   name: string;
   avatarUrl?: string;
   createdAt: string;
-  apiKeys?: ApiKeys;
-  settings?: UserSettings;
+  apiKeys: ApiKeys;
+  settings: UserSettings;
 }
 
 export type Platform = 'linkedin' | 'newsletter';
