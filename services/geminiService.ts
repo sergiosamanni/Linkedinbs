@@ -42,27 +42,42 @@ export const refineBrandField = async (field: string, value: string, isPro: bool
 };
 
 export const suggestRelevantSectors = async (brand: BrandKB, isPro: boolean = false): Promise<SuggestedSector[]> => {
-  const system = "Agisci come un esperto di Business Development.";
-  const prompt = `Identifica 5 settori o mercati strategici per il brand ${brand.name}. 
-  Ritorna un array JSON di oggetti.
-  Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "sector", "rationale", "targetRoles" (un array di oggetti con "role" e "focus").
-  I contenuti devono essere in italiano.`;
+  const system = "Agisci come un esperto di Business Development e Marketing Strategico.";
+  const brandContext = `Brand: ${brand.name}. Descrizione: ${brand.description || 'N/A'}. Mission: ${brand.mission || 'N/A'}. USP: ${brand.usp || 'N/A'}. Target: ${brand.targetSummary || 'N/A'}. Valori: ${brand.values || 'N/A'}.`;
+  const prompt = `Analizza il seguente brand e identifica 5 settori o mercati strategici in cui potrebbe espandersi o rafforzarsi:
+
+${brandContext}
+
+Ritorna un array JSON di oggetti.
+Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "sector" (stringa), "rationale" (stringa), "targetRoles" (array di oggetti con chiavi "role" e "focus").
+I contenuti devono essere in italiano.
+Esempio formato:
+[{"sector": "Fintech", "rationale": "Perché...", "targetRoles": [{"role": "CEO", "focus": "Innovazione"}]}]`;
   const result = await callAI(prompt, system, isPro);
   const data = parseJsonFromAI(result.text);
   
-  // Gestione flessibile se l'AI avvolge l'array in un oggetto (es. { "sectors": [...] })
-  let sectors = Array.isArray(data) ? data : (data.sectors || data.items || data.suggestions || []);
+  // Estrazione flessibile: cerca l'array ovunque nell'oggetto
+  let sectors: any[];
+  if (Array.isArray(data)) {
+    sectors = data;
+  } else {
+    // Cerca la prima proprietà che è un array
+    const arrayKey = Object.keys(data).find(k => Array.isArray(data[k]));
+    sectors = arrayKey ? data[arrayKey] : [];
+  }
   
   return sectors.map((s: any) => ({
-    sector: s.sector || s.settore || '',
-    rationale: s.rationale || s.motivo || s.motivazione || '',
-    targetRoles: Array.isArray(s.targetRoles) ? s.targetRoles.map((r: any) => ({
-      role: r.role || r.ruolo || r.professione || '',
-      focus: r.focus || r.obiettivo || ''
-    })) : (Array.isArray(s.ruoli_target) ? s.ruoli_target.map((r: any) => ({
-      role: r.role || r.ruolo || r.professione || '',
-      focus: r.focus || r.obiettivo || ''
-    })) : [])
+    sector: toStr(s.sector || s.settore || s.name || s.nome),
+    rationale: toStr(s.rationale || s.motivo || s.motivazione || s.description || s.descrizione),
+    targetRoles: (() => {
+      // Cerca l'array dei ruoli in qualsiasi chiave
+      const roles = s.targetRoles || s.target_roles || s.ruoli_target || s.roles || s.ruoli || [];
+      if (!Array.isArray(roles)) return [];
+      return roles.map((r: any) => ({
+        role: toStr(r.role || r.ruolo || r.professione || r.name || r.nome),
+        focus: toStr(r.focus || r.obiettivo || r.description || r.descrizione)
+      }));
+    })()
   }));
 };
 
@@ -110,10 +125,17 @@ export const analyzeCompetitors = async (competitorLinks: string[], type: 'linke
   return parseJsonFromAI(result.text);
 };
 
+// Helper: converte array in stringa se necessario (l'AI a volte ritorna array)
+const toStr = (v: any): string => {
+  if (Array.isArray(v)) return v.join('. ');
+  if (typeof v === 'string') return v;
+  return '';
+};
+
 export const suggestPersonas = async (brand: BrandKB, isPro: boolean = false): Promise<Persona[]> => {
   const prompt = `Definisci 3 target persona strategicamente rilevanti per il brand ${brand.name}. 
   Ritorna un array JSON di oggetti. 
-  Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "name", "role", "pains", "goals".
+  Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "name" (stringa), "role" (stringa), "pains" (stringa unica, non array), "goals" (stringa unica, non array).
   I contenuti devono essere in italiano.`;
   const result = await callAI(prompt, "Marketing Expert & Strategist", isPro);
   const data = parseJsonFromAI(result.text);
@@ -123,17 +145,19 @@ export const suggestPersonas = async (brand: BrandKB, isPro: boolean = false): P
   
   return personas.map((p: any) => ({ 
     id: Math.random().toString(36).substring(2, 11),
-    name: p.name || p.nome || '',
-    role: p.role || p.professione || p.ruolo || '',
-    pains: p.pains || p.bisogni || p.sfide || '',
-    goals: p.goals || p.valori || p.obiettivi || ''
+    name: toStr(p.name || p.nome),
+    role: toStr(p.role || p.professione || p.ruolo),
+    pains: toStr(p.pains || p.bisogni || p.sfide),
+    goals: toStr(p.goals || p.valori || p.obiettivi)
   }));
 };
 
 export const generateSinglePersonaDetails = async (brand: BrandKB, name: string, role: string, isPro: boolean = false): Promise<{pains: string, goals: string}> => {
-  const prompt = `Definisci PAINS e GOALS per ${name}. Ritorna JSON.`;
+  const prompt = `Definisci PAINS e GOALS per la persona "${name}" (ruolo: ${role}) nel contesto del brand. 
+  Ritorna un JSON con chiavi "pains" (stringa unica) e "goals" (stringa unica). NON usare array.`;
   const result = await callAI(prompt, "Expert", isPro);
-  return parseJsonFromAI(result.text);
+  const data = parseJsonFromAI(result.text);
+  return { pains: toStr(data.pains), goals: toStr(data.goals) };
 };
 
 export const suggestPillars = async (brand: BrandKB, isPro: boolean = false): Promise<Pillar[]> => {
