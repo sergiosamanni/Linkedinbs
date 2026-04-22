@@ -41,18 +41,47 @@ export const refineBrandField = async (field: string, value: string, isPro: bool
   return result.text;
 };
 
+// Helper: costruisce un contesto testuale ricco per l'AI
+const buildBrandContext = (brand: BrandKB): string => {
+  let ctx = `Brand Name: ${brand.name}\n`;
+  if (brand.description) ctx += `Description: ${brand.description}\n`;
+  if (brand.mission) ctx += `Mission: ${brand.mission}\n`;
+  if (brand.usp) ctx += `Unique Selling Proposition (USP): ${brand.usp}\n`;
+  if (brand.values) ctx += `Brand Values: ${brand.values}\n`;
+  if (brand.toneOfVoice) ctx += `Tone of Voice: ${brand.toneOfVoice}\n`;
+  if (brand.brandPersonality) ctx += `Brand Personality: ${brand.brandPersonality}\n`;
+  if (brand.targetSummary) ctx += `Target Audience Summary: ${brand.targetSummary}\n`;
+  
+  if (brand.competitorPostInsights && brand.competitorPostInsights.overallMarketGaps?.length > 0) {
+    ctx += `\nCompetitor Market Gaps (LinkedIn):\n`;
+    brand.competitorPostInsights.overallMarketGaps.forEach(g => {
+      ctx += `- Gap: ${g.gap} (Advantage: ${g.brandAdvantage})\n`;
+    });
+  }
+  if (brand.competitorArticleInsights && brand.competitorArticleInsights.overallMarketGaps?.length > 0) {
+    ctx += `\nCompetitor Market Gaps (Blog):\n`;
+    brand.competitorArticleInsights.overallMarketGaps.forEach(g => {
+      ctx += `- Gap: ${g.gap} (Advantage: ${g.brandAdvantage})\n`;
+    });
+  }
+  
+  if (brand.files && brand.files.length > 0) {
+    ctx += `\nUploaded Brand Files (Context hints):\n`;
+    brand.files.forEach(f => ctx += `- ${f.name}\n`);
+  }
+
+  return ctx;
+};
+
 export const suggestRelevantSectors = async (brand: BrandKB, isPro: boolean = false): Promise<SuggestedSector[]> => {
   const system = "Agisci come un esperto di Business Development e Marketing Strategico.";
-  const brandContext = `Brand: ${brand.name}. Descrizione: ${brand.description || 'N/A'}. Mission: ${brand.mission || 'N/A'}. USP: ${brand.usp || 'N/A'}. Target: ${brand.targetSummary || 'N/A'}. Valori: ${brand.values || 'N/A'}.`;
-  const prompt = `Analizza il seguente brand e identifica 5 settori o mercati strategici in cui potrebbe espandersi o rafforzarsi:
-
-${brandContext}
-
+  const brandContext = buildBrandContext(brand);
+  const prompt = `Analizza attentamente tutti i dettagli del seguente brand (inclusi i gap dei competitor se disponibili) e identifica 5 settori o mercati strategici in cui potrebbe espandersi o rafforzarsi in modo iper-personalizzato:\n\n${brandContext}\n
 Ritorna un array JSON di oggetti.
 Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "sector" (stringa), "rationale" (stringa), "targetRoles" (array di oggetti con chiavi "role" e "focus").
 I contenuti devono essere in italiano.
 Esempio formato:
-[{"sector": "Fintech", "rationale": "Perché...", "targetRoles": [{"role": "CEO", "focus": "Innovazione"}]}]`;
+[{"sector": "Fintech", "rationale": "Perché il brand, grazie al suo USP, può rivoluzionare i pagamenti digitali colmando il gap X.", "targetRoles": [{"role": "CEO", "focus": "Innovazione"}]}]`;
   const result = await callAI(prompt, system, isPro);
   const data = parseJsonFromAI(result.text);
   
@@ -144,10 +173,11 @@ const extractArray = (data: any): any[] => {
 };
 
 export const suggestPersonas = async (brand: BrandKB, isPro: boolean = false): Promise<Persona[]> => {
-  const prompt = `Definisci 3 target persona strategicamente rilevanti per il brand ${brand.name}. 
-  Ritorna un array JSON di oggetti. 
-  Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "name" (stringa), "role" (stringa), "pains" (stringa unica, non array), "goals" (stringa unica, non array).
-  I contenuti devono essere in italiano.`;
+  const brandContext = buildBrandContext(brand);
+  const prompt = `Analizza attentamente tutti i dettagli del seguente brand (inclusi i gap dei competitor se disponibili) e definisci 3 Target Persona strategicamente ideali per massimizzare le opportunità nel mercato:\n\n${brandContext}\n
+Ritorna un array JSON di oggetti. 
+Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "name" (stringa), "role" (stringa), "pains" (stringa unica, non array), "goals" (stringa unica, non array).
+I contenuti devono essere in italiano, molto specifici rispetto alla industry del brand.`;
   const result = await callAI(prompt, "Marketing Expert & Strategist", isPro);
   const data = parseJsonFromAI(result.text);
   const personas = extractArray(data);
@@ -174,10 +204,11 @@ export const generateSinglePersonaDetails = async (brand: BrandKB, name: string,
 };
 
 export const suggestPillars = async (brand: BrandKB, isPro: boolean = false): Promise<Pillar[]> => {
-  const prompt = `Identifica 4 Content Pillars fondamentali per la comunicazione di ${brand.name}. 
-  Ritorna un array JSON di oggetti. 
-  Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "title", "description".
-  I contenuti devono essere in italiano.`;
+  const brandContext = buildBrandContext(brand);
+  const prompt = `Analizza attentamente tutti i dettagli del seguente brand (inclusi i gap dei competitor se disponibili) e identifica 4 Content Pillars (pilastri editoriali) fondamentali su cui basare la strategia di contenuti per distinguersi nel mercato:\n\n${brandContext}\n
+Ritorna un array JSON di oggetti. 
+Ogni oggetto deve usare ESATTAMENTE queste chiavi in inglese: "title" (stringa), "description" (stringa).
+I contenuti devono essere in italiano, molto specifici e azionabili.`;
   const result = await callAI(prompt, "Brand Architect & Content Strategist", isPro);
   const data = parseJsonFromAI(result.text);
   

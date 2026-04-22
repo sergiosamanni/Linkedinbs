@@ -37,10 +37,10 @@ const Layout: React.FC<LayoutProps> = ({
 
   const coreMenu = [
     { id: 'knowledge', label: 'Knowledge Base', icon: Database },
+    { id: 'linkedin_benchmarking', label: 'Competitor Radar', icon: Search },
     { id: 'personas', label: 'Target Persona', icon: Users },
     { id: 'pillars', label: 'Content Pillars', icon: Target },
     { id: 'suite_guidelines', label: 'Suite Guidelines', icon: Shield },
-    { id: 'linkedin_benchmarking', label: 'Competitor Radar', icon: Search },
   ];
 
   const linkedinMenu = [
