@@ -2,6 +2,13 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
+class BrandFile(BaseModel):
+    id: str
+    name: str
+    mimeType: str
+    data: str # base64
+    size: int
+
 class BrandKB(BaseModel):
     name: str
     websiteUrl: Optional[str] = ""
@@ -23,6 +30,7 @@ class BrandKB(BaseModel):
     competitorArticleLinks: List[str] = []
     logoUrl: Optional[str] = None
     faviconUrl: Optional[str] = None
+    files: List[BrandFile] = []
 
 class Persona(BaseModel):
     id: str
