@@ -6,7 +6,7 @@ import {
   MessageSquarePlus, Plus, Briefcase, Trash2, LogOut, 
   ChevronDown, Linkedin, Mail, Search, BookOpen, 
   ChevronRight, Camera, FileText, Newspaper, Shield, Layers,
-  Upload, Image as ImageIcon
+  Upload, Image as ImageIcon, Settings as SettingsIcon
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -200,7 +200,10 @@ const Layout: React.FC<LayoutProps> = ({
           </div>
         </nav>
 
-        <div className="p-3 border-t border-slate-100">
+        <div className="p-3 border-t border-slate-100 space-y-1">
+          <button onClick={() => onViewChange('settings')} className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-[12px] font-bold transition-all ${activeView === 'settings' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+            <SettingsIcon size={15} /><span>Impostazioni AI</span>
+          </button>
           <button onClick={onLogout} className="w-full flex items-center space-x-3 px-3 py-2 text-[12px] font-bold text-red-500 hover:bg-red-50 rounded-lg transition-all"><LogOut size={15} /><span>Logout</span></button>
         </div>
       </aside>
