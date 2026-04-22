@@ -5,6 +5,7 @@ import BrandKBForm from './components/BrandKBForm';
 import StrategyPlanner from './components/StrategyPlanner';
 import UnifiedCalendar from './components/UnifiedCalendar';
 import ContentCustom from './components/ContentCustom';
+import UserSettings from './components/UserSettings';
 import { analyzeCompetitors, suggestPersonas, suggestPillars, generateSinglePersonaDetails, generateSinglePillarDetails, suggestRelevantSectors } from './services/geminiService';
 import { BrandKB, Persona, Pillar, View, MonthlyStrategy, CalendarPost, BrandProject, User, Platform, SuggestedSector } from './types';
 import { authService } from './services/authService';
@@ -12,7 +13,8 @@ import { storageService } from './services/storageService';
 import { 
   Plus, Trash2, Sparkles, Loader2, Search, Check, 
   X, TrendingUp, Zap, UserPlus, Linkedin, Mail, ArrowRight, Activity, Lock, Unlock, ShieldAlert, Newspaper, FileText, Shield, LayoutGrid, List,
-  BookOpen, Star, AlertCircle, Wand2, Factory, Briefcase, ChevronRight, Target, CheckSquare, Square
+  BookOpen, Star, AlertCircle, Wand2, Factory, Briefcase, ChevronRight, Target, CheckSquare, Square,
+  Settings as SettingsIcon
 } from 'lucide-react';
 
 const LI_DEFAULT_GUIDELINES = `Agisci come LinkedIn Content Strategist Senior.
@@ -417,7 +419,11 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {activeView === 'linkedin_benchmarking' && (
+          {activeView === 'settings' && user && (
+        <UserSettings user={user} onUpdate={setUser} />
+      )}
+
+      {activeView === 'linkedin_benchmarking' && (
             <div className="space-y-12">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
                 <div className="flex items-center space-x-5">

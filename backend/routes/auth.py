@@ -9,7 +9,7 @@ from typing import Optional
 from bson import ObjectId
 
 from database import get_db
-from models.user import UserCreate, UserInDB, UserOut, Token, TokenData
+from models.user import UserCreate, UserInDB, UserOut, Token, TokenData, UserUpdate
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -44,7 +44,7 @@ async def register(user: UserCreate):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email già registrata")
     
-    user_dict = user.dict()
+    user_dict = user.model_dump()
     password = user_dict.pop("password")
     user_dict["hashed_password"] = get_password_hash(password)
     user_dict["email"] = user_dict["email"].lower()
@@ -60,7 +60,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = await db.users.find_one({"email": form_data.username.lower()})
     if not user or not verify_password(form_data.password, user["hashed_password"]):
         raise HTTPException(
-            status_code=status.HTTP_01_UNAUTHORIZED,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Email o password non corretti",
             headers={"WWW-Authenticate": "Bearer"},
         )
@@ -97,3 +97,20 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 @router.get("/me", response_model=UserOut)
 async def read_users_me(current_user: dict = Depends(get_current_user)):
     return current_user
+
+@router.put("/settings", response_model=UserOut)
+async def update_settings(update: UserUpdate, current_user: dict = Depends(get_current_user)):
+    db = get_db()
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    
+    if not update_data:
+        return current_user
+        
+    await db.users.update_one(
+        {"_id": ObjectId(current_user["id"])},
+        {"$set": update_data}
+    )
+    
+    updated_user = await db.users.find_one({"_id": ObjectId(current_user["id"])})
+    updated_user["id"] = str(updated_user["_id"])
+    return updated_user

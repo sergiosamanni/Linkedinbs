@@ -42,20 +42,22 @@ async def root():
 async def health_check():
     return {"status": "ok"}
 
-# Esempio di endpoint per la generazione AI
+# Endpoint per la generazione AI con supporto a chiavi utente
 @app.post("/api/generate")
-async def generate(data: dict):
+async def generate(data: dict, current_user: dict = Depends(auth.get_current_user)):
     prompt = data.get("prompt")
     system_instruction = data.get("system_instruction", "")
     is_pro = data.get("is_pro", False)
     
     if not prompt:
-        raise HTTPException(status_code=400, detail="Prompt is required")
+        raise HTTPException(status_code=400, detail="Prompt richiesto")
         
     try:
-        result = await llm_service.generate_content(prompt, system_instruction, is_pro)
+        # Passiamo l'utente corrente per usare le sue API Key e preferenze
+        result = await llm_service.generate_content(prompt, system_instruction, is_pro, user=current_user)
         return result
     except Exception as e:
+        print(f"Generation Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

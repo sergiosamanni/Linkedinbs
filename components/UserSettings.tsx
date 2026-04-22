@@ -1,0 +1,167 @@
+
+import React, { useState } from 'react';
+import { User, ApiKeys, UserSettings as Settings } from '../types';
+import { authService } from '../services/authService';
+import { 
+  Key, Save, Loader2, Cpu, ShieldCheck, Zap, 
+  Settings as SettingsIcon, Globe, Lock, BrainCircuit, Sparkles
+} from 'lucide-react';
+
+interface Props {
+  user: User;
+  onUpdate: (user: User) => void;
+}
+
+const UserSettings: React.FC<Props> = ({ user, onUpdate }) => {
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  
+  const [apiKeys, setApiKeys] = useState<ApiKeys>(user.apiKeys || {});
+  const [settings, setSettings] = useState<Settings>(user.settings || { preferredModel: 'gemini', useCustomKeys: false });
+
+  const handleSave = async () => {
+    setLoading(true);
+    setSuccess(false);
+    try {
+      const updatedUser = await authService.updateSettings({
+        apiKeys,
+        settings
+      });
+      onUpdate(updatedUser);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (e: any) {
+      alert("Errore nel salvataggio: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const providers = [
+    { id: 'gemini', name: 'Google Gemini', icon: Sparkles, color: 'text-blue-500' },
+    { id: 'openai', name: 'OpenAI (GPT-4o)', icon: Zap, color: 'text-emerald-500' },
+    { id: 'anthropic', name: 'Anthropic (Claude)', icon: BrainCircuit, color: 'text-orange-500' },
+    { id: 'openrouter', name: 'OpenRouter', icon: Globe, color: 'text-purple-500' },
+    { id: 'deepseek', name: 'DeepSeek', icon: Cpu, color: 'text-indigo-500' },
+  ];
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+      
+      {/* Header */}
+      <div className="flex items-center space-x-4 mb-2">
+        <div className="p-3 bg-slate-900 text-white rounded-2xl shadow-lg">
+          <SettingsIcon size={24} />
+        </div>
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Impostazioni AI</h2>
+          <p className="text-sm text-slate-500 font-medium">Gestisci le tue API Key personali e scegli il tuo modello preferito.</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        {/* Colonna Sinistra: Modello Preferito */}
+        <div className="md:col-span-1 space-y-6">
+          <section className="bg-white rounded-[2rem] p-6 border border-slate-200 shadow-sm space-y-6">
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center">
+              <Zap size={14} className="mr-2 text-blue-500" /> Modello Primario
+            </h3>
+            
+            <div className="space-y-3">
+              {providers.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => setSettings({ ...settings, preferredModel: p.id })}
+                  className={`w-full p-4 rounded-2xl border flex items-center justify-between transition-all ${
+                    settings.preferredModel === p.id 
+                      ? 'bg-slate-900 border-slate-900 text-white shadow-lg' 
+                      : 'bg-slate-50 border-slate-100 text-slate-600 hover:bg-white hover:border-slate-200'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <p.icon size={16} className={settings.preferredModel === p.id ? 'text-white' : p.color} />
+                    <span className="text-[11px] font-black uppercase">{p.name}</span>
+                  </div>
+                  {settings.preferredModel === p.id && <ShieldCheck size={14} />}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100">
+            <p className="text-[10px] text-blue-700 font-bold leading-relaxed">
+              Il modello primario sarà usato per tutte le generazioni. Se dovesse fallire (es. quota esaurita), il sistema utilizzerà gli altri modelli come fallback in ordine automatico.
+            </p>
+          </div>
+        </div>
+
+        {/* Colonna Destra: API Keys */}
+        <div className="md:col-span-2 space-y-6">
+          <section className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm space-y-8">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center">
+                <Key size={14} className="mr-2 text-blue-500" /> API Key Personali
+              </h3>
+              <div className="flex items-center space-x-2">
+                <span className="text-[9px] font-black text-slate-400 uppercase">Usa chiavi personali</span>
+                <button 
+                  onClick={() => setSettings({...settings, useCustomKeys: !settings.useCustomKeys})}
+                  className={`w-10 h-5 rounded-full transition-all relative ${settings.useCustomKeys ? 'bg-blue-600' : 'bg-slate-200'}`}
+                >
+                  <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${settings.useCustomKeys ? 'left-6' : 'left-1'}`} />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              {providers.map((p) => (
+                <div key={p.id} className="space-y-2">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center px-1">
+                    <p.icon size={12} className={`mr-2 ${p.color}`} /> {p.name} API Key
+                  </label>
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">
+                      <Lock size={14} />
+                    </div>
+                    <input
+                      type="password"
+                      value={(apiKeys as any)[p.id] || ''}
+                      onChange={(e) => setApiKeys({ ...apiKeys, [p.id]: e.target.value })}
+                      placeholder={`Incolla qui la tua chiave ${p.name}`}
+                      className="w-full pl-10 pr-6 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-medium focus:bg-white focus:border-blue-500 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-6 border-t border-slate-50">
+              <button
+                onClick={handleSave}
+                disabled={loading}
+                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center space-x-3 hover:bg-slate-800 transition-all shadow-xl active:scale-95 disabled:opacity-50"
+              >
+                {loading ? <Loader2 size={16} className="animate-spin" /> : success ? <ShieldCheck size={16} className="text-emerald-400" /> : <Save size={16} />}
+                <span>{loading ? 'Salvataggio...' : success ? 'Impostazioni Salvate!' : 'Salva Impostazioni'}</span>
+              </button>
+            </div>
+          </section>
+
+          <div className="p-6 bg-slate-900 rounded-3xl text-white space-y-4">
+             <div className="flex items-center space-x-3">
+               <Sparkles size={18} className="text-blue-400" />
+               <p className="text-xs font-bold uppercase tracking-tight">Perché inserire le tue chiavi?</p>
+             </div>
+             <p className="text-[11px] text-slate-400 leading-relaxed">
+               Inserendo le tue chiavi personali, potrai utilizzare l'app senza limiti di quota e avrai il pieno controllo sui modelli utilizzati. Se non inserisci nulla, l'app continuerà a usare le chiavi di default del sistema finché disponibili.
+             </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export default UserSettings;

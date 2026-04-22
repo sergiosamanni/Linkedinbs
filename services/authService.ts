@@ -69,6 +69,23 @@ export const authService = {
     return authService.login(email, pass);
   },
 
+  updateSettings: async (updates: Partial<User>): Promise<User> => {
+    const response = await fetch(`${API_URL}/auth/settings`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(updates)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Errore durante l'aggiornamento delle impostazioni.");
+    }
+
+    const updatedUser = await response.json();
+    localStorage.setItem(AUTH_KEY, JSON.stringify(updatedUser));
+    return updatedUser as User;
+  },
+
   logout: () => {
     localStorage.removeItem(AUTH_KEY);
     localStorage.removeItem(TOKEN_KEY);

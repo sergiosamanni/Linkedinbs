@@ -1,10 +1,25 @@
 
+export interface ApiKeys {
+  gemini?: string;
+  openai?: string;
+  anthropic?: string;
+  openrouter?: string;
+  deepseek?: string;
+}
+
+export interface UserSettings {
+  preferredModel: string;
+  useCustomKeys: boolean;
+}
+
 export interface User {
   id: string;
   email: string;
   name: string;
   avatarUrl?: string;
   createdAt: string;
+  apiKeys?: ApiKeys;
+  settings?: UserSettings;
 }
 
 export type Platform = 'linkedin' | 'newsletter';
@@ -172,4 +187,5 @@ export type View =
   | 'linkedin_strategy' 
   | 'linkedin_custom'
   | 'newsletter_strategy' 
-  | 'newsletter_custom';
+  | 'newsletter_custom'
+  | 'settings';
