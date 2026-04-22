@@ -2,7 +2,7 @@
 import os
 import json
 import asyncio
-import google.generativeai as genai
+from google import genai
 from openai import AsyncOpenAI
 from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
@@ -38,21 +38,28 @@ class LLMService:
                     continue
 
                 print(f"Tentativo generazione con {provider_name}...")
-                # Timeout di 45 secondi per evitare blocchi infiniti
+                # Timeout di 60 secondi per evitare blocchi infiniti
                 result = await asyncio.wait_for(
                     self._call_provider(provider_name, api_key, prompt, system_instruction, is_pro, user_settings),
-                    timeout=45.0
+                    timeout=60.0
                 )
                 
                 if result:
+                    print(f"Generazione riuscita con {provider_name}!")
                     return {"text": result, "provider": provider_name}
             except asyncio.TimeoutError:
-                errors.append(f"{provider_name} timed out")
+                error_msg = f"{provider_name} timed out (60s)"
+                print(f"ERRORE: {error_msg}")
+                errors.append(error_msg)
             except Exception as e:
-                errors.append(f"{provider_name} failed: {str(e)}")
+                error_msg = f"{provider_name} failed: {str(e)}"
+                print(f"ERRORE: {error_msg}")
+                errors.append(error_msg)
                 continue
         
-        raise Exception(f"Tutti i provider LLM hanno fallito: {'; '.join(errors)}")
+        error_summary = f"Tutti i provider LLM hanno fallito: {'; '.join(errors)}"
+        print(f"ERRORE FINALE: {error_summary}")
+        raise Exception(error_summary)
 
     async def _call_provider(self, name: str, api_key: str, prompt: str, system: str, is_pro: bool, settings: dict = None):
         if name == "gemini":
@@ -70,20 +77,16 @@ class LLMService:
         return None
 
     async def _call_gemini(self, api_key: str, prompt: str, system: str, is_pro: bool):
-        genai.configure(api_key=api_key)
-        model_name = 'gemini-1.5-pro' if is_pro else 'gemini-1.5-flash'
-        model = genai.GenerativeModel(model_name)
+        client = genai.Client(api_key=api_key)
+        model_name = 'gemini-2.0-flash' if not is_pro else 'gemini-2.0-pro'
         full_prompt = f"{system}\n\n{prompt}" if system else prompt
         
-        # Le chiamate genai sono bloccanti, le eseguiamo in un thread separato
-        loop = asyncio.get_event_loop()
-        response = await loop.run_in_executor(
-            None, 
-            lambda: model.generate_content(
-                full_prompt,
-                generation_config=genai.types.GenerationConfig(
-                    response_mime_type="application/json" if "JSON" in (system or "") or "JSON" in prompt else "text/plain"
-                )
+        # Usa il client asincrono di google-genai
+        response = await client.aio.models.generate_content(
+            model=model_name,
+            contents=full_prompt,
+            config=genai.types.GenerateContentConfig(
+                response_mime_type="application/json" if "JSON" in (system or "") or "JSON" in prompt else "text/plain"
             )
         )
         return response.text
@@ -100,10 +103,11 @@ class LLMService:
             elif base_url and "openrouter" in base_url:
                 model = "anthropic/claude-3.5-sonnet" if is_pro else "google/gemini-flash-1.5"
 
+        print(f"  -> Modello selezionato: {model}")
         response = await client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system", "content": system},
+                {"role": "system", "content": system or "Sei un assistente utile."},
                 {"role": "user", "content": prompt}
             ],
             response_format={"type": "json_object"} if "JSON" in (system or "") or "JSON" in prompt else {"type": "text"}
@@ -116,7 +120,7 @@ class LLMService:
         response = await client.messages.create(
             model=model,
             max_tokens=4096,
-            system=system,
+            system=system or "Sei un assistente utile.",
             messages=[{"role": "user", "content": prompt}]
         )
         return response.content[0].text

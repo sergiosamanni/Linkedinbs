@@ -9,7 +9,7 @@ python-multipart
 PyJWT
 passlib
 bcrypt==4.0.1
-google-generativeai
+google-genai
 openai
 anthropic
 cors
