@@ -21,18 +21,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Linkedin Brand Strategist API", lifespan=lifespan)
 
-# Configurazione CORS
-# Nota: Quando allow_credentials è True, allow_origins non può essere "*"
+# Configurazione CORS Universale
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "https://linkedinbs.vercel.app",
-        # Questo permette tutte le preview di Vercel (molto utile)
-    ],
-    allow_origin_regex="https://.*vercel\.app",
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
