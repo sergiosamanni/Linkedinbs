@@ -6,7 +6,7 @@ import {
   MessageSquarePlus, Plus, Briefcase, Trash2, LogOut, 
   ChevronDown, Linkedin, Mail, Search, BookOpen, 
   ChevronRight, Camera, FileText, Newspaper, Shield, Layers,
-  Upload, Image as ImageIcon, Settings as SettingsIcon
+  Upload, Image as ImageIcon, Settings as SettingsIcon, CheckCircle2
 } from 'lucide-react';
 
 interface LayoutProps {
