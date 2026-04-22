@@ -222,7 +222,15 @@ const App: React.FC = () => {
       activeView={activeView} onViewChange={setActiveView} projects={projects}
       activeProjectId={activeProjectId} onProjectSelect={setActiveProjectId}
       onProjectAdd={() => { const p = createEmptyProject(user.id); setProjects([...projects, p]); setActiveProjectId(p.id); }}
-      onProjectDelete={(id) => { if(confirm("Eliminare brand?")) { const updated = projects.filter(x => x.id !== id); setProjects(updated); setActiveProjectId(updated.length > 0 ? updated[0].id : null); }}}
+      onProjectDelete={(id) => { 
+        const p = projects.find(x => x.id === id);
+        const isOwner = p?.userId === user.id;
+        if(confirm(isOwner ? "Eliminare brand definitivamente?" : "Rimuovere questo brand condiviso dalla tua lista?")) { 
+          const updated = projects.filter(x => x.id !== id); 
+          setProjects(updated); 
+          setActiveProjectId(updated.length > 0 ? updated[0].id : null); 
+        } 
+      }}
       onUpdateProjectBrandLogo={(pid, url) => setProjects(prev => prev.map(x => x.id === pid ? {...x, brand: {...x.brand, logoUrl: url}} : x))}
       onUpdateProjectBrandFavicon={(pid, url) => setProjects(prev => prev.map(x => x.id === pid ? {...x, brand: {...x.brand, faviconUrl: url}} : x))}
       user={user} onLogout={() => { authService.logout(); setUser(null); }}
@@ -238,7 +246,15 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {activeView === 'knowledge' && <BrandKBForm data={brand} onChange={setBrand} />}
+          {activeView === 'knowledge' && (
+            <BrandKBForm 
+              data={brand} 
+              onChange={setBrand} 
+              collaborators={activeProject.collaborators}
+              onChangeCollaborators={(collabs) => updateActiveProject(p => ({ ...p, collaborators: collabs }))}
+              isOwner={activeProject.userId === user.id}
+            />
+          )}
           
           {activeView === 'personas' && (
             <PersonasView 

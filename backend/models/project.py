@@ -61,6 +61,7 @@ class MonthlyStrategy(BaseModel):
 class BrandProject(BaseModel):
     id: str = Field(alias="_id")
     userId: str
+    collaborators: List[str] = []
     brand: BrandKB
     personas: List[Persona] = []
     pillars: List[Pillar] = []

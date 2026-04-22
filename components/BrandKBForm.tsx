@@ -12,6 +12,9 @@ import {
 interface Props {
   data: BrandKB;
   onChange: (data: BrandKB) => void;
+  collaborators?: string[];
+  onChangeCollaborators?: (collabs: string[]) => void;
+  isOwner?: boolean;
 }
 
 interface FieldWrapperProps {
@@ -56,12 +59,26 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
   </div>
 );
 
-const BrandKBForm: React.FC<Props> = ({ data, onChange }) => {
+const BrandKBForm: React.FC<Props> = ({ data, onChange, collaborators = [], onChangeCollaborators, isOwner = true }) => {
   const [refiningField, setRefiningField] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [newCollab, setNewCollab] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
+
+  const addCollaborator = () => {
+    if (newCollab && !collaborators.includes(newCollab) && onChangeCollaborators) {
+      onChangeCollaborators([...collaborators, newCollab.toLowerCase()]);
+      setNewCollab("");
+    }
+  };
+
+  const removeCollaborator = (email: string) => {
+    if (onChangeCollaborators) {
+      onChangeCollaborators(collaborators.filter(c => c !== email));
+    }
+  };
 
   const handleRefine = async (field: keyof BrandKB) => {
     const val = data[field];
@@ -435,6 +452,85 @@ const BrandKBForm: React.FC<Props> = ({ data, onChange }) => {
           />
         </FieldWrapper>
       </section>
+
+      {/* 5. Team & Sharing (Solo per Owner) */}
+      {isOwner && (
+        <section className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm space-y-10">
+          <div className="flex items-center space-x-5 border-b border-slate-50 pb-8">
+            <div className="p-4 bg-emerald-600 text-white rounded-3xl shadow-xl shadow-emerald-200">
+              <Users size={28} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-black text-slate-900">Condivisione & Team</h3>
+              <p className="text-sm text-slate-500 font-medium">Assegna questo brand ad altri utenti tramite la loro email.</p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="flex space-x-4">
+              <div className="flex-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 px-1">Email del Collaboratore</label>
+                <input 
+                  type="email" 
+                  value={newCollab}
+                  onChange={(e) => setNewCollab(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addCollaborator()}
+                  placeholder="collaboratore@example.com"
+                  className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-50 outline-none transition-all font-bold text-slate-900"
+                />
+              </div>
+              <div className="flex items-end">
+                <button 
+                  onClick={addCollaborator}
+                  disabled={!newCollab}
+                  className="px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 disabled:opacity-50"
+                >
+                  Invita / Aggiungi
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Accessi Attivi</p>
+              {collaborators.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {collaborators.map(email => (
+                    <div key={email} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl group hover:border-emerald-200 transition-all">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-emerald-100 text-emerald-700 rounded-lg flex items-center justify-center">
+                          <User size={16} />
+                        </div>
+                        <span className="text-xs font-bold text-slate-700">{email}</span>
+                      </div>
+                      <button 
+                        onClick={() => removeCollaborator(email)}
+                        className="p-2 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 border-2 border-dashed border-slate-100 rounded-3xl text-center">
+                  <p className="text-xs font-bold text-slate-400 italic">Nessun collaboratore aggiunto. Solo tu puoi accedere a questo brand.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="p-6 bg-emerald-50/50 rounded-3xl border border-emerald-100 flex items-start space-x-4">
+            <ShieldCheck size={20} className="text-emerald-500 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-emerald-900">Privilegi Collaboratore</p>
+              <p className="text-[11px] text-emerald-700 leading-relaxed">
+                I collaboratori potranno visualizzare lo Strategy Planner, generare contenuti e modificare i dettagli del brand. 
+                Solo tu (Owner) puoi aggiungere o rimuovere collaboratori ed eliminare definitivamente il brand.
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 };

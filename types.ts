@@ -158,6 +158,7 @@ export interface MonthlyStrategy {
 export interface BrandProject {
   id: string;
   userId: string;
+  collaborators?: string[];
   brand: BrandKB;
   personas: Persona[];
   pillars: Pillar[];

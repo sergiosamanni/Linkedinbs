@@ -12,7 +12,13 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 @router.get("/", response_model=List[BrandProject])
 async def get_projects(current_user: dict = Depends(get_current_user)):
     db = get_db()
-    cursor = db.projects.find({"userId": current_user["id"]})
+    # Find projects where user is owner OR a collaborator (by email)
+    cursor = db.projects.find({
+        "$or": [
+            {"userId": current_user["id"]},
+            {"collaborators": current_user["email"]}
+        ]
+    })
     projects = []
     async for doc in cursor:
         doc["_id"] = str(doc["_id"])
@@ -22,41 +28,61 @@ async def get_projects(current_user: dict = Depends(get_current_user)):
 @router.post("/", response_model=BrandProject)
 async def create_project(project: BrandProject, current_user: dict = Depends(get_current_user)):
     db = get_db()
-    project_dict = project.dict(by_alias=True)
+    project_dict = project.model_dump(by_alias=True)
+    
+    if "_id" in project_dict and project_dict["_id"]:
+        # Verifica se esiste già
+        existing = await db.projects.find_one({"_id": project_dict["_id"]})
+        if existing:
+            # Verifica permessi: owner o collaboratore
+            is_owner = existing.get("userId") == current_user["id"]
+            is_collab = current_user["email"] in existing.get("collaborators", [])
+            
+            if not is_owner and not is_collab:
+                raise HTTPException(status_code=403, detail="Accesso negato")
+            
+            # Mantieni il userId originale se è un collaboratore a salvare
+            if not is_owner:
+                project_dict["userId"] = existing["userId"]
+            else:
+                project_dict["userId"] = current_user["id"]
+                
+            project_dict["updatedAt"] = datetime.utcnow()
+            await db.projects.replace_one({"_id": project_dict["_id"]}, project_dict)
+            return project_dict
+
+    # Nuovo progetto
     project_dict["userId"] = current_user["id"]
     project_dict["createdAt"] = datetime.utcnow()
     project_dict["updatedAt"] = datetime.utcnow()
     
-    # Se l'ID arriva dal frontend, lo preserviamo come stringa o lo convertiamo in ObjectId se preferisci
-    # In questo caso, usiamo l'ID fornito come _id
-    if "_id" in project_dict:
-        # Verifica se esiste già
-        existing = await db.projects.find_one({"_id": project_dict["_id"]})
-        if existing:
-             await db.projects.replace_one({"_id": project_dict["_id"]}, project_dict)
-        else:
-             await db.projects.insert_one(project_dict)
-    else:
-        result = await db.projects.insert_one(project_dict)
-        project_dict["_id"] = str(result.inserted_id)
+    if "_id" not in project_dict or not project_dict["_id"]:
+        project_dict["_id"] = str(ObjectId())
         
+    await db.projects.insert_one(project_dict)
     return project_dict
 
 @router.put("/{project_id}", response_model=BrandProject)
 async def update_project(project_id: str, project: BrandProject, current_user: dict = Depends(get_current_user)):
     db = get_db()
-    project_dict = project.dict(by_alias=True)
-    project_dict["updatedAt"] = datetime.utcnow()
-    project_dict["userId"] = current_user["id"]
+    project_dict = project.model_dump(by_alias=True)
     
-    result = await db.projects.replace_one(
-        {"_id": project_id, "userId": current_user["id"]},
-        project_dict
-    )
-    
-    if result.matched_count == 0:
+    existing = await db.projects.find_one({"_id": project_id})
+    if not existing:
         raise HTTPException(status_code=404, detail="Progetto non trovato")
         
+    is_owner = existing.get("userId") == current_user["id"]
+    is_collab = current_user["email"] in existing.get("collaborators", [])
+    
+    if not is_owner and not is_collab:
+        raise HTTPException(status_code=403, detail="Accesso negato")
+        
+    # Preserviamo userId e metadata
+    project_dict["userId"] = existing["userId"]
+    project_dict["createdAt"] = existing.get("createdAt", datetime.utcnow())
+    project_dict["updatedAt"] = datetime.utcnow()
+    
+    await db.projects.replace_one({"_id": project_id}, project_dict)
     return project_dict
 
 @router.delete("/{project_id}")
