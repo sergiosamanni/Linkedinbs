@@ -9,7 +9,7 @@ from models.project import BrandProject
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
-@router.get("/", response_model=List[BrandProject])
+@router.get("/", response_model=List[BrandProject], response_model_by_alias=False)
 async def get_projects(current_user: dict = Depends(get_current_user)):
     db = get_db()
     # Find projects where user is owner OR a collaborator (by email)
@@ -25,7 +25,7 @@ async def get_projects(current_user: dict = Depends(get_current_user)):
         projects.append(doc)
     return projects
 
-@router.post("/", response_model=BrandProject)
+@router.post("/", response_model=BrandProject, response_model_by_alias=False)
 async def create_project(project: BrandProject, current_user: dict = Depends(get_current_user)):
     db = get_db()
     project_dict = project.model_dump(by_alias=True)
@@ -62,7 +62,7 @@ async def create_project(project: BrandProject, current_user: dict = Depends(get
     await db.projects.insert_one(project_dict)
     return project_dict
 
-@router.put("/{project_id}", response_model=BrandProject)
+@router.put("/{project_id}", response_model=BrandProject, response_model_by_alias=False)
 async def update_project(project_id: str, project: BrandProject, current_user: dict = Depends(get_current_user)):
     db = get_db()
     project_dict = project.model_dump(by_alias=True)
