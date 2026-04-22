@@ -93,17 +93,17 @@ const CompetitorRadar: React.FC<Props> = ({ brand, pillars, isProMode, onUpdateB
           <div className="space-y-8 mt-8">
             {/* Competitor Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {brand.competitorPostInsights.competitors.map((c, i) => (
+              {(brand.competitorPostInsights.competitors || []).map((c, i) => (
                 <div key={i} className="p-5 bg-slate-50 border border-slate-100 rounded-2xl space-y-3">
                   <div className="flex justify-between items-start">
                     <h6 className="font-black text-slate-900 text-xs uppercase">{c.name}</h6>
                     <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${c.analysisQuality === 'STRONG' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                      {c.analysisQuality}
+                      {c.analysisQuality || 'STANDARD'}
                     </span>
                   </div>
                   <p className="text-[10px] text-slate-500 italic leading-snug">{c.editorialPositioning}</p>
                   <div className="space-y-1">
-                    {c.strengths.slice(0, 2).map((s, j) => <div key={j} className="text-[9px] font-bold text-emerald-600 flex items-center"><Check size={10} className="mr-1" /> {s}</div>)}
+                    {(c.strengths || []).slice(0, 2).map((s, j) => <div key={j} className="text-[9px] font-bold text-emerald-600 flex items-center"><Check size={10} className="mr-1" /> {s}</div>)}
                   </div>
                 </div>
               ))}
@@ -113,10 +113,10 @@ const CompetitorRadar: React.FC<Props> = ({ brand, pillars, isProMode, onUpdateB
               <div className="space-y-4">
                 <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center space-x-2"><TrendingUp size={12} /><span>GAP Identificati & Priorità</span></h5>
                 <ul className="space-y-4">
-                  {brand.competitorPostInsights.overallMarketGaps.map((gapObj, i) => (
+                  {(brand.competitorPostInsights.overallMarketGaps || []).map((gapObj, i) => (
                     <li key={i} className="flex flex-col space-y-1 p-3 bg-white rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
                       <div className={`absolute top-0 right-0 px-2 py-0.5 text-[7px] font-black uppercase ${gapObj.priority === 'HIGH' ? 'bg-red-500 text-white' : gapObj.priority === 'MEDIUM' ? 'bg-amber-500 text-white' : 'bg-slate-500 text-white'}`}>
-                        {gapObj.priority}
+                        {gapObj.priority || 'NORMAL'}
                       </div>
                       <div className="flex items-start space-x-2">
                         <Check size={12} className="text-blue-500 mt-1 shrink-0" />
@@ -130,7 +130,7 @@ const CompetitorRadar: React.FC<Props> = ({ brand, pillars, isProMode, onUpdateB
               <div className="space-y-4">
                 <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center space-x-2"><Activity size={12} /><span>Azioni Tattiche Master</span></h5>
                 <ul className="space-y-3">
-                  {brand.competitorPostInsights.practicalStrategicTips.map((tip, i) => (
+                  {(brand.competitorPostInsights.practicalStrategicTips || []).map((tip, i) => (
                     <li key={i} className="text-xs font-bold text-slate-700 flex flex-col p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
                       <span className="text-[9px] font-black text-blue-600 uppercase mb-1">{tip.expectedImpact}</span>
                       <div className="flex items-start space-x-2">
@@ -176,17 +176,17 @@ const CompetitorRadar: React.FC<Props> = ({ brand, pillars, isProMode, onUpdateB
           <div className="space-y-8 mt-8">
             {/* Competitor Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {brand.competitorArticleInsights.competitors.map((c, i) => (
+              {(brand.competitorArticleInsights.competitors || []).map((c, i) => (
                 <div key={i} className="p-5 bg-slate-50 border border-slate-100 rounded-2xl space-y-3">
                   <div className="flex justify-between items-start">
                     <h6 className="font-black text-slate-900 text-xs uppercase">{c.name}</h6>
                     <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${c.analysisQuality === 'STRONG' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                      {c.analysisQuality}
+                      {c.analysisQuality || 'STANDARD'}
                     </span>
                   </div>
                   <p className="text-[10px] text-slate-500 italic leading-snug">{c.editorialPositioning}</p>
                   <div className="space-y-1">
-                    {c.strengths.slice(0, 2).map((s, j) => <div key={j} className="text-[9px] font-bold text-emerald-600 flex items-center"><Check size={10} className="mr-1" /> {s}</div>)}
+                    {(c.strengths || []).slice(0, 2).map((s, j) => <div key={j} className="text-[9px] font-bold text-emerald-600 flex items-center"><Check size={10} className="mr-1" /> {s}</div>)}
                   </div>
                 </div>
               ))}
@@ -196,10 +196,10 @@ const CompetitorRadar: React.FC<Props> = ({ brand, pillars, isProMode, onUpdateB
               <div className="space-y-4">
                 <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center space-x-2"><FileText size={12} /><span>Temi Emergenti & Priorità</span></h5>
                 <ul className="space-y-4">
-                  {brand.competitorArticleInsights.overallMarketGaps.map((gapObj, i) => (
+                  {(brand.competitorArticleInsights.overallMarketGaps || []).map((gapObj, i) => (
                     <li key={i} className="flex flex-col space-y-1 p-3 bg-white rounded-xl border border-slate-100 shadow-sm relative overflow-hidden">
                       <div className={`absolute top-0 right-0 px-2 py-0.5 text-[7px] font-black uppercase ${gapObj.priority === 'HIGH' ? 'bg-red-500 text-white' : gapObj.priority === 'MEDIUM' ? 'bg-amber-500 text-white' : 'bg-slate-500 text-white'}`}>
-                        {gapObj.priority}
+                        {gapObj.priority || 'NORMAL'}
                       </div>
                       <div className="flex items-start space-x-2">
                         <Check size={12} className="text-blue-500 mt-1 shrink-0" />
@@ -213,7 +213,7 @@ const CompetitorRadar: React.FC<Props> = ({ brand, pillars, isProMode, onUpdateB
               <div className="space-y-4">
                 <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center space-x-2"><Zap size={12} /><span>Spunti Produttivi Strategici</span></h5>
                 <ul className="space-y-3">
-                  {brand.competitorArticleInsights.practicalStrategicTips.map((tip, i) => (
+                  {(brand.competitorArticleInsights.practicalStrategicTips || []).map((tip, i) => (
                     <li key={i} className="text-xs font-bold text-slate-700 flex flex-col p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
                       <span className="text-[9px] font-black text-purple-600 uppercase mb-1">{tip.expectedImpact}</span>
                       <div className="flex items-start space-x-2">
