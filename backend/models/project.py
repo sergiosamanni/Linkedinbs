@@ -6,7 +6,7 @@ class BrandFile(BaseModel):
     id: str
     name: str
     mimeType: str
-    data: str # base64
+    data: Optional[str] = None # base64 (only during upload)
     size: int
 
 class BrandKB(BaseModel):
