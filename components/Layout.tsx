@@ -81,7 +81,7 @@ const Layout: React.FC<LayoutProps> = ({
       {/* Sidebar Stretta (Brand Switcher) */}
       <aside className="w-16 bg-slate-900 flex flex-col items-center border-r border-slate-800 z-30 shrink-0">
         <div className="w-full flex flex-col items-center pt-6 pb-4 shrink-0">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black text-lg mb-4">B</div>
+          <div className="w-10 h-10 bg-rose-600 rounded-lg flex items-center justify-center text-white font-black text-lg mb-4">B</div>
           <div className="w-8 h-[1px] bg-slate-800 mb-2" />
         </div>
 
