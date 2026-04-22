@@ -5,7 +5,7 @@ pydantic
 pydantic-settings
 python-dotenv
 python-multipart
-jose[cryptography]
+python-jose[cryptography]
 passlib[bcrypt]
 google-generativeai
 openai
