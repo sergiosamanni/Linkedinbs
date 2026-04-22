@@ -149,8 +149,43 @@ export const generateMonthlyStrategy = async (
 };
 
 export const analyzeCompetitors = async (competitorLinks: string[], type: 'linkedin' | 'blog' = 'linkedin', brand: BrandKB, pillars: Pillar[], isPro: boolean = false): Promise<CompetitorInsight> => {
-  const prompt = `Analizza questi competitor: ${competitorLinks.join(", ")}. Ritorna JSON.`;
-  const result = await callAI(prompt, "Analyst", isPro);
+  const brandContext = buildBrandContext(brand);
+  const prompt = `Analizza i seguenti competitor (${type}): ${competitorLinks.join(", ")}.
+
+Contesto del ns. Brand per trovare gap strategici:
+${brandContext}
+
+Ritorna ESCLUSIVAMENTE un oggetto JSON con questa esatta struttura:
+{
+  "competitors": [
+    {
+      "name": "Nome",
+      "url": "Link limitato se applicabile",
+      "editorialPositioning": "Posizionamento editoriale",
+      "strengths": ["Punto forza 1", "Punto forza 2"],
+      "weaknesses": ["Punto debole 1", "Punto debole 2"],
+      "contentPatterns": "Pattern prevalente",
+      "analysisQuality": "STRONG" o "STANDARD"
+    }
+  ],
+  "overallMarketGaps": [
+    {
+      "gap": "Vuoto di mercato identificato",
+      "whyItMatters": "Perché è rilevante",
+      "brandAdvantage": "Come il ns brand può sfruttarlo",
+      "priority": "HIGH", "MEDIUM" o "LOW"
+    }
+  ],
+  "practicalStrategicTips": [
+    {
+      "action": "Azione tattica",
+      "objective": "Obiettivo",
+      "channel": "${type}",
+      "expectedImpact": "Breve impatto atteso"
+    }
+  ]
+}`;
+  const result = await callAI(prompt, "Competitor Intelligence Analyst", isPro);
   return parseJsonFromAI(result.text);
 };
 
