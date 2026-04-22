@@ -22,12 +22,14 @@ interface LayoutProps {
   onUpdateProjectBrandFavicon: (projectId: string, faviconUrl: string) => void;
   user: User;
   onLogout: () => void;
+  isSaving?: boolean;
 }
 
 const Layout: React.FC<LayoutProps> = ({ 
   children, activeView, onViewChange, projects, 
   activeProjectId, onProjectSelect, onProjectAdd,
-  onProjectDelete, onUpdateProjectBrandLogo, onUpdateProjectBrandFavicon, user, onLogout
+  onProjectDelete, onUpdateProjectBrandLogo, onUpdateProjectBrandFavicon, user, onLogout,
+  isSaving = false
 }) => {
   const [isUploading, setIsUploading] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -218,6 +220,19 @@ const Layout: React.FC<LayoutProps> = ({
             </div>
             <div className="w-[1px] h-3 bg-slate-300" />
             <span className="text-blue-600">v2.0 Orchestrator</span>
+          </div>
+          <div className="ml-6 flex items-center">
+            {isSaving ? (
+              <div className="flex items-center space-x-2 text-[10px] font-black text-blue-500 uppercase tracking-widest animate-pulse">
+                <Upload size={12} className="animate-bounce" />
+                <span>Salvataggio...</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2 text-[10px] font-black text-emerald-500 uppercase tracking-widest opacity-60">
+                <CheckCircle2 size={12} />
+                <span>Sincronizzato</span>
+              </div>
+            )}
           </div>
           <div className="ml-auto flex items-center space-x-4">
             <div className="flex items-center space-x-3">

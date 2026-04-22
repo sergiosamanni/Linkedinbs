@@ -81,6 +81,7 @@ const App: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false); 
   const [projects, setProjects] = useState<BrandProject[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [isProMode, setIsProMode] = useState<boolean>(() => localStorage.getItem('pro_mode_enabled') === 'true');
   const [showUnlockModal, setShowUnlockModal] = useState(false);
@@ -107,7 +108,11 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (user && isInitialized && !fetchingProjects) {
-      storageService.saveProjects(user.id, projects);
+      setIsSaving(true);
+      storageService.saveProjects(user.id, projects).finally(() => {
+        // Mock delay for smoother UI feedback
+        setTimeout(() => setIsSaving(false), 800);
+      });
     }
   }, [projects, user, fetchingProjects, isInitialized]);
 
@@ -234,6 +239,7 @@ const App: React.FC = () => {
       onUpdateProjectBrandLogo={(pid, url) => setProjects(prev => prev.map(x => x.id === pid ? {...x, brand: {...x.brand, logoUrl: url}} : x))}
       onUpdateProjectBrandFavicon={(pid, url) => setProjects(prev => prev.map(x => x.id === pid ? {...x, brand: {...x.brand, faviconUrl: url}} : x))}
       user={user} onLogout={() => { authService.logout(); setUser(null); }}
+      isSaving={isSaving}
     >
       {activeProject && (
         <div className="animate-in fade-in duration-500 max-w-5xl mx-auto space-y-10 pb-20">
