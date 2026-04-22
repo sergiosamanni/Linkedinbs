@@ -23,6 +23,14 @@ const callAI = async (prompt: str, systemInstruction: string = "", isPro: boolea
   return data.text;
 };
 
+// Raffina un campo specifico del Brand KB
+export const refineBrandField = async (field: string, value: string, isPro: boolean = false): Promise<string> => {
+  const system = "Agisci come un Brand Strategist Senior e Copywriter esperto.";
+  const prompt = `Raffina e ottimizza questo campo del brand: "${field}". Contenuto originale: "${value}". Rendi il testo più professionale, incisivo e orientato al mercato, mantenendo il senso originale. Ritorna ESCLUSIVAMENTE il testo raffinato.`;
+  
+  return await callAI(prompt, system, isPro);
+};
+
 // Funzione helper per pulire l'output JSON dell'AI (spesso necessario)
 const parseJsonFromAI = (text: string) => {
   try {
