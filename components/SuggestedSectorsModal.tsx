@@ -6,6 +6,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   loading: boolean;
+  isBatchImporting: boolean;
   sectors: SuggestedSector[];
   selectedKeys: string[];
   activeView: View;
@@ -14,7 +15,7 @@ interface Props {
 }
 
 const SuggestedSectorsModal: React.FC<Props> = ({ 
-  isOpen, onClose, loading, sectors, selectedKeys, activeView, onToggleSelection, onBatchImport 
+  isOpen, onClose, loading, isBatchImporting, sectors, selectedKeys, activeView, onToggleSelection, onBatchImport 
 }) => {
   if (!isOpen) return null;
 
@@ -100,10 +101,15 @@ const SuggestedSectorsModal: React.FC<Props> = ({
             {selectedKeys.length > 0 && (
               <button 
                 onClick={onBatchImport}
-                className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] flex items-center justify-center space-x-3 shadow-xl hover:bg-blue-700 transition-all"
+                disabled={isBatchImporting}
+                className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] flex items-center justify-center space-x-3 shadow-xl hover:bg-blue-700 transition-all disabled:opacity-50"
               >
-                <Sparkles size={16} />
-                <span>Importa Selezionati ({selectedKeys.length}) & Completa AI</span>
+                {isBatchImporting ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                <span>
+                  {isBatchImporting 
+                    ? `Generazione in corso...` 
+                    : `Importa Selezionati (${selectedKeys.length}) & Completa AI`}
+                </span>
               </button>
             )}
             <p className="text-[9px] text-slate-400 italic text-center">

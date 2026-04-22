@@ -51,7 +51,7 @@ const PersonasView: React.FC<Props> = ({ brand, personas, isProMode, onUpdatePer
             className="px-4 py-2 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase flex items-center space-x-2 shadow-lg"
            >
             {loadingSuggestions ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-            <span>Genera con AI</span>
+            <span>{loadingSuggestions ? 'Generazione...' : 'Genera con AI'}</span>
           </button>
         </div>
       </div>

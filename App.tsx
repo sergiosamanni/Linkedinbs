@@ -92,6 +92,7 @@ const App: React.FC = () => {
   const [sectorsLoading, setSectorsLoading] = useState(false);
   const [suggestedSectors, setSuggestedSectors] = useState<SuggestedSector[]>([]);
   const [selectedSectorKeys, setSelectedSectorKeys] = useState<string[]>([]);
+  const [isBatchImporting, setIsBatchImporting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -189,16 +190,17 @@ const App: React.FC = () => {
 
   const handleBatchImport = async () => {
     if (selectedSectorKeys.length === 0) return;
+    setIsBatchImporting(true);
     
     if (activeView === 'personas') {
       const newItems: Persona[] = selectedSectorKeys.map(key => {
         const [sIdx, rIdx] = key.split('-').map(Number);
         const s = suggestedSectors[sIdx];
         const r = s.targetRoles[rIdx];
-        return { id: generateId(), name: s.sector, role: r.role, pains: '', goals: '' };
+        return { id: generateId(), name: s.sector, role: r.role, pains: 'Generazione in corso...', goals: 'Generazione in corso...' };
       });
       setPersonas(prev => [...prev, ...newItems]);
-      setIsSectorsModalOpen(false);
+      
       // Completa in serie per evitare sovrapposizioni e gestire rate limits
       for (const item of newItems) {
         try {
@@ -210,10 +212,10 @@ const App: React.FC = () => {
       const newItems: Pillar[] = selectedSectorKeys.map(key => {
         const sIdx = Number(key);
         const s = suggestedSectors[sIdx];
-        return { id: generateId(), title: `Target: ${s.sector}`, description: '' };
+        return { id: generateId(), title: `Target: ${s.sector}`, description: 'Generazione in corso...' };
       });
       setPillars(prev => [...prev, ...newItems]);
-      setIsSectorsModalOpen(false);
+      
       for (const item of newItems) {
         try {
           const details = await generateSinglePillarDetails(brand, item.title, isProMode);
@@ -221,6 +223,10 @@ const App: React.FC = () => {
         } catch (e) { handleGlobalError(e); }
       }
     }
+
+    setIsBatchImporting(false);
+    setIsSectorsModalOpen(false);
+    setSelectedSectorKeys([]);
   };
 
   if (!user) return <Auth onAuthSuccess={u => setUser(u)} />;
@@ -336,16 +342,17 @@ const App: React.FC = () => {
       )}
 
       {/* Suggested Sectors Modal */}
-      <SuggestedSectorsModal
-        isOpen={isSectorsModalOpen}
-        onClose={() => setIsSectorsModalOpen(false)}
-        loading={sectorsLoading}
-        sectors={suggestedSectors}
-        selectedKeys={selectedSectorKeys}
-        activeView={activeView}
-        onToggleSelection={toggleSelection}
-        onBatchImport={handleBatchImport}
-      />
+        <SuggestedSectorsModal 
+          isOpen={isSectorsModalOpen} 
+          onClose={() => setIsSectorsModalOpen(false)}
+          loading={sectorsLoading}
+          isBatchImporting={isBatchImporting}
+          sectors={suggestedSectors}
+          selectedKeys={selectedSectorKeys}
+          activeView={activeView}
+          onToggleSelection={(key) => setSelectedSectorKeys(prev => prev.includes(key) ? prev.filter(x => x !== key) : [...prev, key])}
+          onBatchImport={handleBatchImport}
+        />
 
       {showUnlockModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">

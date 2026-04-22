@@ -79,9 +79,9 @@ const ContentCustom: React.FC<Props> = ({ brand, platform, isProMode, onGlobalEr
 
         <textarea value={post.baseText} onChange={e => setPost({...post, baseText: e.target.value})} rows={6} placeholder="Scrivi qui la tua idea grezza o i dati del case study..." className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-[2rem] outline-none text-sm font-medium" />
 
-        <button onClick={handleRefine} disabled={loading || !post.baseText} className={`w-full py-4 text-white rounded-2xl font-black flex items-center justify-center space-x-2 shadow-lg ${platform === 'linkedin' ? 'bg-blue-600' : 'bg-purple-600'}`}>
+        <button onClick={handleRefine} disabled={loading || !post.baseText} className={`w-full py-4 text-white rounded-2xl font-black flex items-center justify-center space-x-2 shadow-lg disabled:opacity-50 transition-all ${platform === 'linkedin' ? 'bg-blue-600' : 'bg-purple-600'}`}>
           {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
-          <span>Genera con AI Master</span>
+          <span>{loading ? 'Generazione in corso...' : 'Genera con AI Master'}</span>
         </button>
         {error && <div className="text-red-500 text-xs font-bold text-center mt-2">{error}</div>}
       </div>

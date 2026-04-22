@@ -255,7 +255,7 @@ const StrategyPlanner: React.FC<Props> = ({ brand, personas, pillars, platform, 
           className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] flex items-center justify-center space-x-4 shadow-xl hover:bg-slate-800 transition-all disabled:opacity-50"
         >
           {loading ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} fill="currentColor" />}
-          <span>Genera Strategia Mensile</span>
+          <span>{loading ? 'Generazione in corso...' : 'Genera Strategia Mensile'}</span>
         </button>
       </section>
     </div>

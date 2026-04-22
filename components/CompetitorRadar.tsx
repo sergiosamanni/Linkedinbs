@@ -72,7 +72,7 @@ const CompetitorRadar: React.FC<Props> = ({ brand, pillars, isProMode, onUpdateB
           </div>
           <button onClick={handleAnalyzePosts} disabled={analyzingPosts || !brand.competitorPostLinks?.length} className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase flex items-center space-x-3 shadow-lg hover:bg-blue-700 transition-all disabled:opacity-50">
             {analyzingPosts ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-            <span>Analizza Posts LinkedIn</span>
+            <span>{analyzingPosts ? 'Analisi in corso...' : 'Analizza Posts LinkedIn'}</span>
           </button>
         </div>
         <div className="space-y-4">
@@ -155,7 +155,7 @@ const CompetitorRadar: React.FC<Props> = ({ brand, pillars, isProMode, onUpdateB
           </div>
           <button onClick={handleAnalyzeArticles} disabled={analyzingArticles || !brand.competitorArticleLinks?.length} className="px-6 py-2.5 bg-purple-600 text-white rounded-xl font-black text-[10px] uppercase flex items-center space-x-3 shadow-lg hover:bg-purple-700 transition-all disabled:opacity-50">
             {analyzingArticles ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-            <span>Analizza Blog Competitor</span>
+            <span>{analyzingArticles ? 'Analisi in corso...' : 'Analizza Blog Competitor'}</span>
           </button>
         </div>
         <div className="space-y-4">
