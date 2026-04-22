@@ -210,8 +210,12 @@ const Layout: React.FC<LayoutProps> = ({
 
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         <header className="bg-white border-b border-slate-200 h-14 flex items-center px-6 shrink-0">
-          <div className="bg-slate-100 px-3 py-1 rounded-lg text-[9px] font-black text-slate-500 flex items-center space-x-2">
-            <span>DASHBOARD</span><ChevronRight size={10} /><span className="text-slate-900">{activeView.replace(/_/g, ' ').toUpperCase()}</span>
+          <div className="bg-slate-100 px-3 py-1 rounded-lg text-[9px] font-black text-slate-500 flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <span>DASHBOARD</span><ChevronRight size={10} /><span className="text-slate-900">{activeView.replace(/_/g, ' ').toUpperCase()}</span>
+            </div>
+            <div className="w-[1px] h-3 bg-slate-300" />
+            <span className="text-blue-600">v2.0 Orchestrator</span>
           </div>
           <div className="ml-auto flex items-center space-x-4">
              <img src={user.avatarUrl} className="w-8 h-8 rounded-lg" alt="Avatar" />
