@@ -29,7 +29,7 @@ class LLMService:
         admin_keys = {}
         from database import get_db
         db = get_db()
-        if db:
+        if db is not None:
             admin = await db.users.find_one({"role": "admin"})
             if admin:
                 admin_keys = admin.get("apiKeys", {})
