@@ -325,17 +325,37 @@ export const generateSinglePillarDetails = async (brand: BrandKB, title: string,
   return parseJsonFromAI(result.text);
 };
 
-// Funzione per forzare la conversione da markdown a unicode bold
+// Funzione per convertire markdown bold (**testo**) in Unicode Bold
+// I caratteri senza equivalente Unicode Bold (accenti, simboli) restano normali
 const convertMarkdownToUnicodeBold = (text: string): string => {
-  const normalChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const boldChars   = "𝗔𝗕𝗖𝗗𝗘𝗙𝗚𝗛𝗜𝗝𝗞𝗟𝗠𝗡𝗢𝗣𝗤𝗥𝗦𝗧𝗨𝗩𝗪𝗫𝗬𝗭𝗮𝗯𝗰𝗱𝗲𝗳𝗴𝗵𝗶𝗷𝗸𝗹𝗺𝗻𝗼𝗽𝗾𝗿𝘀𝘁𝘂𝘃𝘄𝘅𝘆𝘇𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵";
+  const boldMap: Record<string, string> = {
+    'A':'𝗔','B':'𝗕','C':'𝗖','D':'𝗗','E':'𝗘','F':'𝗙','G':'𝗚','H':'𝗛','I':'𝗜','J':'𝗝',
+    'K':'𝗞','L':'𝗟','M':'𝗠','N':'𝗡','O':'𝗢','P':'𝗣','Q':'𝗤','R':'𝗥','S':'𝗦','T':'𝗧',
+    'U':'𝗨','V':'𝗩','W':'𝗪','X':'𝗫','Y':'𝗬','Z':'𝗭',
+    'a':'𝗮','b':'𝗯','c':'𝗰','d':'𝗱','e':'𝗲','f':'𝗳','g':'𝗴','h':'𝗵','i':'𝗶','j':'𝗷',
+    'k':'𝗸','l':'𝗹','m':'𝗺','n':'𝗻','o':'𝗼','p':'𝗽','q':'𝗾','r':'𝗿','s':'𝘀','t':'𝘁',
+    'u':'𝘂','v':'𝘃','w':'𝘄','x':'𝘅','y':'𝘆','z':'𝘇',
+    '0':'𝟬','1':'𝟭','2':'𝟮','3':'𝟯','4':'𝟰','5':'𝟱','6':'𝟲','7':'𝟳','8':'𝟴','9':'𝟵'
+  };
   
-  return text.replace(/\*\*(.*?)\*\*/g, (match, p1) => {
-    return p1.split('').map((char: string) => {
-      const idx = normalChars.indexOf(char);
-      return idx !== -1 ? boldChars[idx] : char;
+  // Step 1: Rimuovi eventuali Unicode Bold corrotti (sequenze di caratteri U+1D5xx malformati)
+  let cleaned = text.replace(/[\uD835][\uDC00-\uDFFF]/g, (match) => {
+    // Mantieni solo i caratteri Unicode Bold validi che sono nella nostra mappa
+    const values = Object.values(boldMap);
+    return values.includes(match) ? match : '';
+  });
+  
+  // Step 2: Converti **markdown bold** in Unicode Bold (solo caratteri ASCII)
+  cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, (_match, p1) => {
+    return Array.from(p1 as string).map((char: string) => {
+      return boldMap[char] || char; // Caratteri senza mappa (accenti etc.) restano normali
     }).join('');
   });
+  
+  // Step 3: Rimuovi asterischi orfani residui
+  cleaned = cleaned.replace(/\*{2,}/g, '');
+  
+  return cleaned;
 };
 
 export const generatePostContent = async (
@@ -358,9 +378,15 @@ export const generatePostContent = async (
 Sei incaricato di scrivere contenuti di altissimo livello che rispettino PEDISSEQUAMENTE le istruzioni fornite.
 
 REGOLE MANDATORIE DI FORMATTAZIONE E STILE:
-1. NO MARKDOWN: NON USARE MAI ** o __ per il grassetto. Converti le parole importanti in caratteri matematici bold (es: 𝗕𝗼𝗹𝗱 invece di **Bold**).
+1. GRASSETTO: Usa **doppi asterischi** per evidenziare le parole importanti (es: **Strategia**). NON usare MAI caratteri Unicode speciali o simboli matematici per il grassetto.
 2. LEGGIBILITÀ: Usa frasi brevi, incisive e paragrafi di massimo 2-3 righe per facilitare la lettura veloce a schermo.
 3. LINK: Se le linee guida richiedono un link, posizionalo nelle prime 3 righe del post usando l'URL del brand (${brand.websiteUrl}).
+
+REGOLE DI QUALITÀ DEL CONTENUTO:
+4. SOBRIETÀ E COINVOLGIMENTO: Il tono deve essere sobrio ma coinvolgente. Evita sensazionalismi e fuffa. Ogni frase deve apportare valore reale.
+5. APPORTO SIGNIFICATIVO: Il contenuto deve offrire insight concreti, dati reali o esperienze verificabili nel settore specifico del brand. No generalizzazioni vuote.
+6. FONTI: Se citi dati, statistiche o tendenze di settore, indica la fonte tra parentesi (es: "secondo [Fonte, Anno]"). Cerca di essere sempre verificabile.
+7. ORIGINALITÀ: Il tono di voce deve essere sempre originale e mirato al settore e al pubblico target. Evita formule generiche.
 
 LINEE GUIDA SPECIFICHE DA SEGUIRE:
 ${guidelines}`;
@@ -377,8 +403,8 @@ Angolo Strategico: ${post.angle}
 Idea Visual: ${post.mediaIdea}
 
 ESECUZIONE:
-Genera il contenuto completo del post. Assicurati che ogni singola riga delle linee guida sopra citate sia rispettata. 
-Usa ESCLUSIVAMENTE Unicode per evidenziare il testo. Evita paragrafi lunghi.`;
+Genera il contenuto completo del post. Assicurati che ogni singola riga delle linee guida e delle regole di qualità sopra citate sia rispettata.
+Usa **doppi asterischi** per il grassetto. Evita paragrafi lunghi. Sii concreto e specifico.`;
 
   const result = await callAI(prompt, system, isPro);
   
@@ -412,7 +438,11 @@ export const refineCustomPost = async (brand: BrandKB, platform: Platform, conte
   
   const system = `Agisci come un esperto Copywriter Senior. Ottimizza il testo per un ${contentType} su ${platform} seguendo queste linee guida:
 ${guidelines}
-RICORDA: NO MARKDOWN. Usa solo Unicode Bold (es: 𝗕𝗼𝗹𝗱). Usa frasi brevi e incisive. 
+REGOLE DI FORMATTAZIONE:
+- Usa **doppi asterischi** per il grassetto. NON usare MAI caratteri Unicode speciali.
+- Usa frasi brevi e incisive.
+- Il tono deve essere sobrio ma coinvolgente, con un apporto significativo e realistico al settore.
+- Se citi dati o tendenze, indica la fonte.
 Se è un articolo, usa una struttura narrativa coinvolgente con titoli chiari.`;
 
   const prompt = `Brand: ${brand.name}. Obiettivo: ${objective}. Formato: ${contentType}.

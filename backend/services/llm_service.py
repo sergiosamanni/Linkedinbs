@@ -315,7 +315,9 @@ BRAND INFO:
 - Tono di Voce: {brand_kb.get('toneOfVoice')}
 
 REGOLE:
-- NO MARKDOWN asterischi. Usa Unicode Bold per enfasi (es: 𝗕𝗼𝗹𝗱).
+- Usa **doppi asterischi** per il grassetto. NON usare MAI caratteri Unicode speciali o simboli matematici.
+- Il tono deve essere sobrio ma coinvolgente, con un apporto significativo e realistico al settore.
+- Se citi dati o tendenze, indica la fonte.
 - Sii specifico, usa dati reali dai documenti se pertinenti."""
 
         prompt = f"NOTE DELL'UTENTE: {base_text}\n\nAnalizza l'immagine e scrivi il contenuto ottimizzato."
