@@ -23,6 +23,13 @@ class LLMService:
             "deepseek": os.getenv("DEEPSEEK_API_KEY")
         }
 
+    async def _get_gemini_client(self):
+        admin_keys = await self._get_admin_api_keys()
+        api_key = admin_keys.get("gemini") or os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            raise Exception("Gemini API Key non configurata.")
+        return genai.Client(api_key=api_key)
+
     async def generate_content(self, prompt: str, system_instruction: str = "", is_pro: bool = False, user: dict = None):
         user_keys = user.get("apiKeys", {}) if user else {}
         user_settings = user.get("settings", {}) if user else {}
