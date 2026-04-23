@@ -6,7 +6,7 @@ import {
   Sparkles, Loader2, Globe, Database, Type, MessageSquare, Info, 
   Target, Rocket, ShieldCheck, Heart, Eye, PenTool, Users, User,
   FileUp, FileText, FileSpreadsheet, Image as ImageIcon, Trash2, X,
-  FileCode, CheckCircle2, AlertCircle, Camera, UploadCloud
+  FileCode, CheckCircle2, AlertCircle, Camera, UploadCloud, Linkedin
 } from 'lucide-react';
 
 interface Props {
