@@ -111,7 +111,7 @@ class LLMService:
 
     async def _call_gemini(self, api_key: str, prompt: str, system: str, is_pro: bool):
         client = genai.Client(api_key=api_key)
-        model_name = 'gemini-2.0-flash' if not is_pro else 'gemini-2.0-pro'
+        model_name = 'gemini-1.5-flash' if not is_pro else 'gemini-1.5-pro'
         full_prompt = f"{system}\n\n{prompt}" if system else prompt
         
         # Usa il client asincrono di google-genai
@@ -231,7 +231,7 @@ class LLMService:
             full_prompt
         ]
         response = await client.aio.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-1.5-flash",
             contents=contents
         )
         return response.text

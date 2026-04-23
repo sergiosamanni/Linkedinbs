@@ -26,15 +26,21 @@ const callAI = async (prompt: string, systemInstruction: string = "", isPro: boo
 // Funzione helper per pulire l'output JSON dell'AI (spesso necessario)
 const parseJsonFromAI = (text: string) => {
   try {
-    // Prova a trovare l'inizio e la fine di un array [ ] o oggetto { }
-    const arrayMatch = text.match(/\[[\s\S]*\]/);
-    const objectMatch = text.match(/\{[\s\S]*\}/);
+    // 1. Rimuovi caratteri Unicode corrotti o invisibili che rompono JSON.parse
+    // Rimuoviamo i caratteri di controllo e le sequenze malformate (es. quelle che causano )
+    let sanitizedText = text.replace(/[\uFFFD\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
+
+    // 2. Prova a trovare l'inizio e la fine di un array [ ] o oggetto { }
+    const arrayMatch = sanitizedText.match(/\[[\s\S]*\]/);
+    const objectMatch = sanitizedText.match(/\{[\s\S]*\}/);
     
-    let jsonToParse = text;
+    let jsonToParse = sanitizedText;
     if (arrayMatch) jsonToParse = arrayMatch[0];
     else if (objectMatch) jsonToParse = objectMatch[0];
 
+    // 3. Pulisci i blocchi di codice markdown
     let cleaned = jsonToParse.replace(/```json/g, "").replace(/```/g, "").trim();
+    
     return JSON.parse(cleaned);
   } catch (e) {
     console.error("Errore parsing JSON AI. Testo originale:", text);
