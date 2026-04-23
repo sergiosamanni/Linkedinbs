@@ -40,7 +40,7 @@ class LLMService:
         api_key = admin_keys.get("gemini") or os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise Exception("Gemini API Key non configurata.")
-        return genai.Client(api_key=api_key)
+        return genai.Client(api_key=api_key, http_options={'api_version': 'v1'})
 
     async def generate_content(self, prompt: str, system_instruction: str = "", is_pro: bool = False, user: dict = None):
         user_keys = user.get("apiKeys", {}) if user else {}
