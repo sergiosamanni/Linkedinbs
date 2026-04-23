@@ -225,4 +225,57 @@ DOCUMENTI TESTUALI CARICATI:
         
         return await self.generate_content(prompt, system_instruction, is_pro, user)
 
+    async def generate_with_image_and_context(self, image_data: str, mime_type: str, base_text: str, brand_kb: dict, platform: str, contentType: str = "post", is_pro: bool = False, user: dict = None):
+        # 1. Estrai testo dalla KB (i file caricati nel Vault)
+        brand_files = brand_kb.get("files", [])
+        kb_context_parts = []
+        for f in brand_files:
+            text = self._extract_text_from_file(f.get("data", ""), f.get("mimeType", ""))
+            if text:
+                kb_context_parts.append(f"--- DOC: {f.get('name')} ---\n{text}")
+        
+        kb_context = "\n\n".join(kb_context_parts)
+        
+        # 2. Costruisci le istruzioni di sistema con il contesto completo
+        system_instruction = f"""Agisci come un Copywriter e Content Strategist multimodale.
+Il tuo compito è analizzare l'immagine fornita e scrivere un {contentType} per {platform} basandoti:
+1. Su ciò che vedi nell'immagine.
+2. Sulla strategia e i dati contenuti nella Knowledge Base qui sotto.
+
+KNOWLEDGE BASE DEL BRAND (DOCUMENTI):
+{kb_context}
+
+BRAND INFO:
+- Nome: {brand_kb.get('name')}
+- Descrizione: {brand_kb.get('description')}
+- Tono di Voce: {brand_kb.get('toneOfVoice')}
+
+REGOLE MANDATORIE:
+- NO MARKDOWN asterischi. Usa Unicode Bold per enfasi (es: 𝗕𝗼𝗹𝗱).
+- Sii specifico, usa dati reali estratti dai documenti se pertinenti all'immagine.
+"""
+        
+        prompt = f"NOTE DELL'UTENTE: {base_text}\n\nAnalizza l'immagine e scrivi il contenuto ottimizzato."
+
+        # 3. Chiamata Multimodale a Gemini
+        try:
+            client = await self._get_gemini_client()
+            contents = [
+                genai.types.Part.from_bytes(data=base64.b64decode(image_data), mime_type=mime_type),
+                genai.types.Part.from_text(text=prompt)
+            ]
+            
+            response = await client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=contents,
+                config=genai.types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.7
+                )
+            )
+            return {"text": response.text}
+        except Exception as e:
+            print(f"Error in multimodal generation: {str(e)}")
+            raise e
+
 llm_service = LLMService()

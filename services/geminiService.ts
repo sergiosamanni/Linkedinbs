@@ -427,10 +427,27 @@ Ritorna il testo raffinato e pronto per la pubblicazione su ${platform}.`;
 };
 
 export const analyzeImageAndGeneratePost = async (imageBase64: string, mimeType: string, baseText: string, brand: BrandKB, platform: Platform, isPro: boolean = false): Promise<{text: string, sources: GroundingSource[]}> => {
-  const prompt = `Analizza questa immagine (base64) e scrivi un post per ${brand.name} su ${platform}. Note: ${baseText}.`;
-  // In una implementazione reale, qui invieresti l'immagine al backend.
-  const result = await callAI(prompt, "Visual Copywriter", isPro);
-  return { text: result.text, sources: result.sources };
+  const response = await fetch(`${API_URL}/api/generate-multimodal`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      image_data: imageBase64,
+      mime_type: mimeType,
+      base_text: baseText,
+      brand_kb: brand,
+      platform: platform,
+      is_pro: isPro
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Errore durante la generazione multimodale");
+  }
+
+  const data = await response.json();
+  const processedText = convertMarkdownToUnicodeBold(data.text);
+  return { text: processedText, sources: data.sources || [] };
 };
 
 export const queryBrandBrain = async (question: string, files: BrandFile[], isPro: boolean = false): Promise<{text: string, sources: GroundingSource[]}> => {

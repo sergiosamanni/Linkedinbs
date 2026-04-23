@@ -94,6 +94,28 @@ async def query_brain(data: dict, current_user: dict = Depends(auth.get_current_
         print(f"Brain Query Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/generate-multimodal")
+async def generate_multimodal(data: dict, current_user: dict = Depends(auth.get_current_user)):
+    image_data = data.get("image_data")
+    mime_type = data.get("mime_type")
+    base_text = data.get("base_text", "")
+    brand_kb = data.get("brand_kb", {})
+    platform = data.get("platform", "linkedin")
+    content_type = data.get("content_type", "post")
+    is_pro = data.get("is_pro", False)
+    
+    if not image_data or not mime_type:
+        raise HTTPException(status_code=400, detail="Immagine richiesta")
+        
+    try:
+        result = await llm_service.generate_with_image_and_context(
+            image_data, mime_type, base_text, brand_kb, platform, content_type, is_pro, user=current_user
+        )
+        return result
+    except Exception as e:
+        print(f"Multimodal Generation Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
