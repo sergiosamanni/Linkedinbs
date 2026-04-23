@@ -196,56 +196,51 @@ class LLMService:
             if not data: continue
 
             if "image" in mime:
-                # Per le immagini, le passiamo come parti multimodali
-                image_parts.append({
-                    "mime_type": mime,
-                    "data": data.split(",")[1] if "," in data else data
-                })
+                raw = data.split(",")[1] if "," in data else data
+                image_parts.append({"mime_type": mime, "data": raw})
             else:
-                # Per i documenti, estraiamo il testo
                 text = self._extract_text_from_file(data, mime)
                 if text:
                     context_parts.append(f"--- DOCUMENTO: {f.get('name')} ---\n{text}")
 
         brain_context = "\n\n".join(context_parts)
         
-        system_instruction = f"""Agisci come un analista esperto di Brand Strategy e Ricerca Multimodale.
-Il tuo compito è rispondere alla domanda dell'utente basandoti sui documenti E sulle immagini fornite.
-Analizza i testi e osserva attentamente le immagini per fornire una risposta accurata.
+        system_text = f"""Agisci come un analista esperto di Brand Strategy e Ricerca Multimodale.
+Rispondi alla domanda basandoti sui documenti e sulle immagini fornite.
 
 DOCUMENTI TESTUALI CARICATI:
 {brain_context}"""
 
-        prompt = f"DOMANDA: {question}"
+        full_prompt = f"{system_text}\n\nDOMANDA: {question}"
         
-        # Se abbiamo immagini, usiamo Gemini direttamente per la multimodalità
-        # Se non abbiamo immagini, usiamo il flusso standard (che potrebbe usare OpenAI/Anthropic come fallback)
-        if image_parts and not is_pro: # is_pro force might use other models, but here we want vision
+        # Se abbiamo immagini, usiamo Gemini direttamente (multimodale)
+        if image_parts:
             try:
-                client = await self._get_gemini_client()
-                contents = []
-                for img in image_parts:
-                    contents.append(genai.types.Part.from_bytes(data=base64.b64decode(img["data"]), mime_type=img["mime_type"]))
-                
-                contents.append(genai.types.Part.from_text(text=prompt))
-                
-                response = await client.models.generate_content(
-                    model="gemini-1.5-flash",
-                    contents=contents,
-                    config=genai.types.GenerateContentConfig(
-                        system_instruction=system_instruction,
-                        temperature=0.7
+                admin_keys = await self._get_admin_api_keys()
+                api_key = admin_keys.get("gemini") or self.system_keys.get("gemini")
+                if api_key:
+                    client = genai.Client(api_key=api_key)
+                    contents = []
+                    for img in image_parts:
+                        contents.append(genai.types.Part.from_bytes(
+                            data=base64.b64decode(img["data"]), 
+                            mime_type=img["mime_type"]
+                        ))
+                    contents.append(full_prompt)
+                    
+                    response = await client.aio.models.generate_content(
+                        model="gemini-1.5-flash",
+                        contents=contents
                     )
-                )
-                return {"text": response.text}
+                    return {"text": response.text}
             except Exception as e:
                 print(f"Errore Vision Brain: {str(e)}")
                 # Fallback al testo se la visione fallisce
         
-        return await self.generate_content(prompt, system_instruction, is_pro, user)
+        return await self.generate_content(full_prompt, "", is_pro, user)
 
     async def generate_with_image_and_context(self, image_data: str, mime_type: str, base_text: str, brand_kb: dict, platform: str, contentType: str = "post", is_pro: bool = False, user: dict = None):
-        # 1. Estrai testo dalla KB (i file caricati nel Vault)
+        # 1. Estrai testo dalla KB
         brand_files = brand_kb.get("files", [])
         kb_context_parts = []
         for f in brand_files:
@@ -255,13 +250,11 @@ DOCUMENTI TESTUALI CARICATI:
         
         kb_context = "\n\n".join(kb_context_parts)
         
-        # 2. Costruisci le istruzioni di sistema con il contesto completo
-        system_instruction = f"""Agisci come un Copywriter e Content Strategist multimodale.
-Il tuo compito è analizzare l'immagine fornita e scrivere un {contentType} per {platform} basandoti:
-1. Su ciò che vedi nell'immagine.
-2. Sulla strategia e i dati contenuti nella Knowledge Base qui sotto.
+        # 2. Costruisci un unico prompt completo (NO system_instruction separato)
+        full_prompt = f"""Agisci come un Copywriter e Content Strategist multimodale.
+Analizza l'immagine fornita e scrivi un {contentType} per {platform}.
 
-KNOWLEDGE BASE DEL BRAND (DOCUMENTI):
+KNOWLEDGE BASE DEL BRAND:
 {kb_context}
 
 BRAND INFO:
@@ -269,28 +262,32 @@ BRAND INFO:
 - Descrizione: {brand_kb.get('description')}
 - Tono di Voce: {brand_kb.get('toneOfVoice')}
 
-REGOLE MANDATORIE:
+REGOLE:
 - NO MARKDOWN asterischi. Usa Unicode Bold per enfasi (es: 𝗕𝗼𝗹𝗱).
-- Sii specifico, usa dati reali estratti dai documenti se pertinenti all'immagine.
-"""
-        
-        prompt = f"NOTE DELL'UTENTE: {base_text}\n\nAnalizza l'immagine e scrivi il contenuto ottimizzato."
+- Sii specifico, usa dati reali dai documenti se pertinenti.
 
-        # 3. Chiamata Multimodale a Gemini
+NOTE DELL'UTENTE: {base_text}
+
+Analizza l'immagine e scrivi il contenuto ottimizzato."""
+
+        # 3. Chiamata Multimodale con lo stesso pattern di _call_gemini
         try:
-            client = await self._get_gemini_client()
+            admin_keys = await self._get_admin_api_keys()
+            user_keys = user.get("apiKeys", {}) if user else {}
+            api_key = user_keys.get("gemini") or admin_keys.get("gemini") or self.system_keys.get("gemini")
+            
+            if not api_key:
+                raise Exception("Gemini API Key non configurata. Necessaria per l'analisi delle immagini.")
+            
+            client = genai.Client(api_key=api_key)
             contents = [
                 genai.types.Part.from_bytes(data=base64.b64decode(image_data), mime_type=mime_type),
-                genai.types.Part.from_text(text=prompt)
+                full_prompt
             ]
             
-            response = await client.models.generate_content(
+            response = await client.aio.models.generate_content(
                 model="gemini-1.5-flash",
-                contents=contents,
-                config=genai.types.GenerateContentConfig(
-                    system_instruction=system_instruction,
-                    temperature=0.7
-                )
+                contents=contents
             )
             return {"text": response.text}
         except Exception as e:
@@ -298,3 +295,4 @@ REGOLE MANDATORIE:
             raise e
 
 llm_service = LLMService()
+
