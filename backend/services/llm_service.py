@@ -23,6 +23,18 @@ class LLMService:
             "deepseek": os.getenv("DEEPSEEK_API_KEY")
         }
 
+    async def _get_admin_api_keys(self):
+        try:
+            from database import get_db
+            db = get_db()
+            if db is not None:
+                admin = await db.users.find_one({"role": "admin"})
+                if admin:
+                    return admin.get("apiKeys", {})
+        except Exception as e:
+            print(f"Error fetching admin keys: {e}")
+        return {}
+
     async def _get_gemini_client(self):
         admin_keys = await self._get_admin_api_keys()
         api_key = admin_keys.get("gemini") or os.getenv("GEMINI_API_KEY")
