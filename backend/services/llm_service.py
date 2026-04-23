@@ -229,7 +229,7 @@ DOCUMENTI TESTUALI CARICATI:
                     contents.append(full_prompt)
                     
                     response = await client.aio.models.generate_content(
-                        model="gemini-1.5-flash",
+                        model="gemini-2.0-flash",
                         contents=contents
                     )
                     return {"text": response.text}
@@ -286,7 +286,7 @@ Analizza l'immagine e scrivi il contenuto ottimizzato."""
             ]
             
             response = await client.aio.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-2.0-flash",
                 contents=contents
             )
             return {"text": response.text}
