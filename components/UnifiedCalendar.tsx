@@ -4,7 +4,7 @@ import { MonthlyStrategy, CalendarPost, BrandKB, Persona, Pillar, ContentType, P
 import { 
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, List, Grid, 
   CheckCircle2, Linkedin, Mail, Newspaper, FileText, Plus, X, 
-  Target, Info, Sparkles
+  Target, Info, Sparkles, Trash2
 } from 'lucide-react';
 import PostCreator from './PostCreator';
 
@@ -68,6 +68,16 @@ const UnifiedCalendar: React.FC<Props> = ({ brand, personas, pillars, strategies
 
     setDraggedPost(null);
     setDropTargetDay(null);
+  };
+
+  const handleDeletePost = (strategyId: string, postId: string) => {
+    if (!confirm("Sei sicuro di voler eliminare questo contenuto dal calendario?")) return;
+    
+    const targetStrategy = strategies.find(s => s.id === strategyId);
+    if (!targetStrategy) return;
+
+    const updatedPosts = targetStrategy.posts.filter(p => p.id !== postId);
+    onUpdateStrategy({ ...targetStrategy, posts: updatedPosts });
   };
 
   const handleOpenAddModal = (day?: number) => {
@@ -265,7 +275,15 @@ const UnifiedCalendar: React.FC<Props> = ({ brand, personas, pillars, strategies
                                 {getTypeIcon(p.contentType)}
                                 <span className="text-[7px] font-black uppercase tracking-tight leading-none">{p.contentType.replace('_', ' ')}</span>
                             </div>
-                            {p.status === 'published' && <CheckCircle2 size={8} className="text-emerald-600" />}
+                            <div className="flex items-center space-x-1">
+                              {p.status === 'published' && <CheckCircle2 size={8} className="text-emerald-600" />}
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleDeletePost(p.strategyId!, p.id); }}
+                                className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-red-500 transition-all"
+                              >
+                                <Trash2 size={8} />
+                              </button>
+                            </div>
                           </div>
                           <div className="text-[9px] font-bold leading-[1.2] line-clamp-2 text-slate-800">{p.hook}</div>
                         </div>
@@ -290,6 +308,7 @@ const UnifiedCalendar: React.FC<Props> = ({ brand, personas, pillars, strategies
                 const strat = (strategies || []).find(s => s.id === post.strategyId);
                 if (strat) onUpdateStrategy({ ...strat, posts: strat.posts.map(p => p.id === updated.id ? updated : p) });
               }} 
+              onDelete={() => handleDeletePost(post.strategyId!, post.id)}
               isProMode={isProMode}
               onGlobalError={onGlobalError}
             />

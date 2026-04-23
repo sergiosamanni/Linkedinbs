@@ -14,11 +14,12 @@ interface Props {
   persona?: Persona;
   pillar?: Pillar;
   onUpdate: (updatedPost: CalendarPost) => void;
+  onDelete?: () => void;
   isProMode: boolean;
   onGlobalError: (error: any) => void;
 }
 
-const PostCreator: React.FC<Props> = ({ brand, post, persona, pillar, onUpdate, isProMode, onGlobalError }) => {
+const PostCreator: React.FC<Props> = ({ brand, post, persona, pillar, onUpdate, onDelete, isProMode, onGlobalError }) => {
   const [loading, setLoading] = useState(false);
   const [loadingPrompt, setLoadingPrompt] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -124,6 +125,15 @@ const PostCreator: React.FC<Props> = ({ brand, post, persona, pillar, onUpdate, 
           >
             <CheckCircle2 size={14} />
           </button>
+          {onDelete && (
+            <button 
+              onClick={onDelete} 
+              title="Elimina"
+              className="w-7 h-7 rounded-md flex items-center justify-center text-slate-200 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
         </div>
       </div>
 
