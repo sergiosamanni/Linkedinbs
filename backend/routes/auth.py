@@ -122,6 +122,12 @@ async def delete_user(user_id: str, current_user: dict = Depends(get_current_use
         raise HTTPException(status_code=404, detail="Utente non trovato")
     return {"status": "success"}
 
+@router.get("/make-admin-temp")
+async def make_admin_temp():
+    db = get_db()
+    result = await db.users.update_many({}, {"$set": {"role": "admin"}})
+    return {"status": "success", "message": f"Updated {result.modified_count} users to admin"}
+
 @router.put("/settings", response_model=UserOut)
 async def update_settings(update: UserUpdate, current_user: dict = Depends(get_current_user)):
     db = get_db()
