@@ -195,11 +195,11 @@ const PostCreator: React.FC<Props> = ({ brand, post, persona, pillar, onUpdate, 
                   Carica in Programmati
                 </button>
                 <a 
-                  href="https://www.linkedin.com/feed/" 
+                  href={brand.linkedinUrl || "https://www.linkedin.com/feed/"} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="px-3 py-2 border border-slate-200 text-slate-400 rounded-xl hover:bg-slate-50 hover:text-blue-600 transition-all"
-                  title="Vai su LinkedIn"
+                  title={brand.linkedinUrl ? `Vai su ${brand.name} LinkedIn` : "Vai su LinkedIn"}
                 >
                   <Link2 size={14} />
                 </a>

@@ -338,6 +338,16 @@ const BrandKBForm: React.FC<Props> = ({ data, onChange, collaborators = [], onCh
               placeholder="https://acme-tech.com"
             />
           </FieldWrapper>
+
+          <FieldWrapper id="linkedinUrl" label="URL Pagina/Profilo LinkedIn" icon={Linkedin} canRefine={false} data={data} refiningField={refiningField} handleRefine={handleRefine}>
+            <input
+              type="url"
+              value={data.linkedinUrl}
+              onChange={(e) => onChange({ ...data, linkedinUrl: e.target.value })}
+              className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 outline-none transition-all font-bold text-slate-900"
+              placeholder="https://linkedin.com/company/il-tuo-brand"
+            />
+          </FieldWrapper>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

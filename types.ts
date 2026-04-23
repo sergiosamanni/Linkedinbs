@@ -80,6 +80,7 @@ export interface CompetitorInsight {
 export interface BrandKB {
   name: string;
   websiteUrl: string;
+  linkedinUrl: string;
   description: string;
   mission: string;
   usp: string;
