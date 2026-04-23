@@ -182,11 +182,78 @@ class LLMService:
             print(f"Errore estrazione testo ({mime_type}): {str(e)}")
             return ""
 
+    async def _call_multimodal(self, image_b64: str, mime_type: str, prompt: str, system: str, user: dict = None):
+        """Tenta la generazione multimodale con fallback tra i provider disponibili."""
+        user_keys = user.get("apiKeys", {}) if user else {}
+        user_settings = user.get("settings", {}) if user else {}
+        admin_keys = await self._get_admin_api_keys()
+
+        providers = ["gemini", "openai", "openrouter"]
+        preferred = user_settings.get("preferredModel", "gemini")
+        if preferred in providers:
+            providers.remove(preferred)
+            providers.insert(0, preferred)
+
+        full_prompt = f"{system}\n\n{prompt}" if system else prompt
+        errors = []
+
+        for provider in providers:
+            api_key = user_keys.get(provider) or admin_keys.get(provider) or self.system_keys.get(provider)
+            if not api_key:
+                continue
+
+            try:
+                print(f"Tentativo multimodale con {provider}...")
+                if provider == "gemini":
+                    result = await self._call_gemini_multimodal(api_key, image_b64, mime_type, full_prompt)
+                elif provider in ("openai", "openrouter"):
+                    base_url = "https://openrouter.ai/api/v1" if provider == "openrouter" else None
+                    model = user_settings.get("openrouterModel", "google/gemini-flash-1.5") if provider == "openrouter" else "gpt-4o-mini"
+                    result = await self._call_openai_multimodal(api_key, image_b64, mime_type, full_prompt, system, base_url, model)
+                else:
+                    continue
+
+                if result:
+                    print(f"Multimodale riuscito con {provider}!")
+                    return result
+            except Exception as e:
+                error_msg = f"{provider} multimodal failed: {str(e)}"
+                print(f"ERRORE: {error_msg}")
+                errors.append(error_msg)
+                continue
+
+        raise Exception(f"Tutti i provider multimodali hanno fallito: {'; '.join(errors)}")
+
+    async def _call_gemini_multimodal(self, api_key: str, image_b64: str, mime_type: str, full_prompt: str):
+        client = genai.Client(api_key=api_key)
+        contents = [
+            genai.types.Part.from_bytes(data=base64.b64decode(image_b64), mime_type=mime_type),
+            full_prompt
+        ]
+        response = await client.aio.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=contents
+        )
+        return response.text
+
+    async def _call_openai_multimodal(self, api_key: str, image_b64: str, mime_type: str, prompt: str, system: str, base_url: str = None, model: str = "gpt-4o-mini"):
+        client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+        response = await client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system or "Sei un assistente esperto di content strategy."},
+                {"role": "user", "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{image_b64}"}}
+                ]}
+            ]
+        )
+        return response.choices[0].message.content
+
     async def ask_brand_brain(self, question: str, brand_files: list, is_pro: bool = False, user: dict = None):
         if not brand_files:
             return {"text": "Nessun documento caricato nella Knowledge Base. Carica dei file per usare il Brand Brain."}
 
-        # Estrai testo dai documenti e prepara le immagini
         context_parts = []
         image_parts = []
         
@@ -205,38 +272,24 @@ class LLMService:
 
         brain_context = "\n\n".join(context_parts)
         
-        system_text = f"""Agisci come un analista esperto di Brand Strategy e Ricerca Multimodale.
-Rispondi alla domanda basandoti sui documenti e sulle immagini fornite.
+        system_text = f"""Agisci come un analista esperto di Brand Strategy e Ricerca Documentale.
+Rispondi alla domanda basandoti sui documenti forniti.
 
-DOCUMENTI TESTUALI CARICATI:
+DOCUMENTI CARICATI:
 {brain_context}"""
 
-        full_prompt = f"{system_text}\n\nDOMANDA: {question}"
-        
-        # Se abbiamo immagini, usiamo Gemini direttamente (multimodale)
+        # Se ci sono immagini, usa il flusso multimodale con fallback
         if image_parts:
+            # Usa la prima immagine (la più rilevante)
+            img = image_parts[0]
             try:
-                admin_keys = await self._get_admin_api_keys()
-                api_key = admin_keys.get("gemini") or self.system_keys.get("gemini")
-                if api_key:
-                    client = genai.Client(api_key=api_key)
-                    contents = []
-                    for img in image_parts:
-                        contents.append(genai.types.Part.from_bytes(
-                            data=base64.b64decode(img["data"]), 
-                            mime_type=img["mime_type"]
-                        ))
-                    contents.append(full_prompt)
-                    
-                    response = await client.aio.models.generate_content(
-                        model="gemini-2.0-flash",
-                        contents=contents
-                    )
-                    return {"text": response.text}
+                result = await self._call_multimodal(img["data"], img["mime_type"], f"DOMANDA: {question}", system_text, user)
+                return {"text": result}
             except Exception as e:
-                print(f"Errore Vision Brain: {str(e)}")
-                # Fallback al testo se la visione fallisce
+                print(f"Brain multimodal fallback to text: {str(e)}")
         
+        # Fallback: solo testo, usa il sistema standard con tutti i provider
+        full_prompt = f"{system_text}\n\nDOMANDA: {question}"
         return await self.generate_content(full_prompt, "", is_pro, user)
 
     async def generate_with_image_and_context(self, image_data: str, mime_type: str, base_text: str, brand_kb: dict, platform: str, contentType: str = "post", is_pro: bool = False, user: dict = None):
@@ -250,9 +303,8 @@ DOCUMENTI TESTUALI CARICATI:
         
         kb_context = "\n\n".join(kb_context_parts)
         
-        # 2. Costruisci un unico prompt completo (NO system_instruction separato)
-        full_prompt = f"""Agisci come un Copywriter e Content Strategist multimodale.
-Analizza l'immagine fornita e scrivi un {contentType} per {platform}.
+        system = f"""Agisci come un Copywriter e Content Strategist multimodale.
+Analizza l'immagine e scrivi un {contentType} per {platform}.
 
 KNOWLEDGE BASE DEL BRAND:
 {kb_context}
@@ -264,35 +316,13 @@ BRAND INFO:
 
 REGOLE:
 - NO MARKDOWN asterischi. Usa Unicode Bold per enfasi (es: 𝗕𝗼𝗹𝗱).
-- Sii specifico, usa dati reali dai documenti se pertinenti.
+- Sii specifico, usa dati reali dai documenti se pertinenti."""
 
-NOTE DELL'UTENTE: {base_text}
+        prompt = f"NOTE DELL'UTENTE: {base_text}\n\nAnalizza l'immagine e scrivi il contenuto ottimizzato."
 
-Analizza l'immagine e scrivi il contenuto ottimizzato."""
-
-        # 3. Chiamata Multimodale con lo stesso pattern di _call_gemini
-        try:
-            admin_keys = await self._get_admin_api_keys()
-            user_keys = user.get("apiKeys", {}) if user else {}
-            api_key = user_keys.get("gemini") or admin_keys.get("gemini") or self.system_keys.get("gemini")
-            
-            if not api_key:
-                raise Exception("Gemini API Key non configurata. Necessaria per l'analisi delle immagini.")
-            
-            client = genai.Client(api_key=api_key)
-            contents = [
-                genai.types.Part.from_bytes(data=base64.b64decode(image_data), mime_type=mime_type),
-                full_prompt
-            ]
-            
-            response = await client.aio.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=contents
-            )
-            return {"text": response.text}
-        except Exception as e:
-            print(f"Error in multimodal generation: {str(e)}")
-            raise e
+        # Usa il sistema di fallback multimodale completo
+        result = await self._call_multimodal(image_data, mime_type, prompt, system, user)
+        return {"text": result}
 
 llm_service = LLMService()
 
