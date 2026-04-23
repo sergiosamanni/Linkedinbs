@@ -408,7 +408,41 @@ export const analyzeImageAndGeneratePost = async (imageBase64: string, mimeType:
 };
 
 export const generateDeepVisualPrompt = async (post: CalendarPost, brand: BrandKB, isPro: boolean = false): Promise<string> => {
-  const prompt = `Genera un prompt visivo dettagliato per Midjourney basato su questo post: ${post.hook}.`;
-  const result = await callAI(prompt, "Visual Artist", isPro);
+  const brandCtx = `Brand: ${brand.name}. Settore: ${brand.description}. Stile Visivo: ${brand.visualKeywords || 'Moderno, professionale'}.`;
+  
+  let typeSpecific = "";
+  // Determiniamo se è un carosello dal tipo di contenuto o dal mediaIdea
+  const isCarousel = post.contentType === 'linkedin_newsletter' || (post.mediaIdea && post.mediaIdea.toLowerCase().includes('carousel')) || (post.mediaType === 'carousel');
+
+  if (post.contentType === 'article' || post.contentType === 'linkedin_newsletter') {
+    typeSpecific = "Si tratta di un contenuto lungo, genera un prompt per un'immagine di copertina cinematografica ed evocativa (Aspect Ratio 16:9, --ar 16:9).";
+  } else if (isCarousel) {
+    typeSpecific = `Si tratta di un CAROSELLO LINKEDIN. Genera una struttura dettagliata slide per slide (minimo 5-7 slide):
+    - Slide 1 (Copertina): Gancio visivo estremo, titolo "${post.hook}", colori del brand.
+    - Slide 2-N: Sviluppo narrativo dell'angolo "${post.angle}". Per ogni slide specifica: Titolo, Grafica suggerita, Testo di supporto.
+    - Ultima Slide: Call to Action chiara e forte.
+    Specifica uno stile visivo coerente (formato 1080x1350, --ar 4:5).`;
+  } else {
+    typeSpecific = "Genera un prompt per un post standard LinkedIn (formato 1080x1350, --ar 4:5). Focus sul soggetto e l'atmosfera professionale.";
+  }
+
+  const system = "Agisci come un Art Director e Prompt Engineer Senior per AI generative (Midjourney, ChatGPT, DALL-E).";
+  const prompt = `${brandCtx}
+CONTENUTO POST:
+Hook: ${post.hook}
+Angolo: ${post.angle}
+Idea Media Originale: ${post.mediaIdea || 'Non specificata'}
+
+${typeSpecific}
+
+REGOLE PROMPT:
+1. Inizia con una descrizione visiva dettagliata (soggetto, stile, illuminazione, colori, tipo di lente).
+2. Includi istruzioni tecniche precise per l'LLM (es: "Crea un'immagine che...", "Dividi il carosello in...").
+3. Assicurati che l'estetica sia coerente con i "Visual Style Keywords" del brand: ${brand.visualKeywords || 'non definiti'}.
+4. Se è un carosello, fornisci un output strutturato che posso copiare e incollare per ottenere tutte le slide.
+
+Genera il prompt completo pronto per essere copiato:`;
+
+  const result = await callAI(prompt, system, isPro);
   return result.text;
 };

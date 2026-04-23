@@ -5,7 +5,7 @@ import { generatePostContent, generateDeepVisualPrompt } from '../services/gemin
 import { 
   Copy, Check, Loader2, Sparkles, Pencil, CheckCircle2, 
   Save, Palette, FileText, Link2, Linkedin, Mail, Newspaper, Target,
-  Trash2
+  Trash2, RefreshCw
 } from 'lucide-react';
 
 interface Props {
@@ -101,6 +101,16 @@ const PostCreator: React.FC<Props> = ({ brand, post, persona, pillar, onUpdate, 
         
         {/* PULSANTI OPERATIVI SEMPRE VISIBILI E PULITI */}
         <div className="flex items-center space-x-1 shrink-0 ml-2">
+          {(post.fullContent && !isPublished) && (
+            <button 
+              onClick={handleCreate} 
+              disabled={loading} 
+              title="Rigenera Contenuto"
+              className="w-7 h-7 bg-slate-100 text-slate-500 rounded-md flex items-center justify-center transition-all hover:bg-slate-200 hover:text-slate-900 disabled:opacity-30"
+            >
+              {loading ? <Loader2 className="animate-spin" size={12} /> : <RefreshCw size={12} />}
+            </button>
+          )}
           {!post.fullContent && (
             <button 
               onClick={handleCreate} 
