@@ -167,25 +167,62 @@ class LLMService:
         if not brand_files:
             return {"text": "Nessun documento caricato nella Knowledge Base. Carica dei file per usare il Brand Brain."}
 
-        # Estrai testo da tutti i file
+        # Estrai testo dai documenti e prepara le immagini
         context_parts = []
+        image_parts = []
+        
         for f in brand_files:
-            text = self._extract_text_from_file(f.get("data", ""), f.get("mimeType", ""))
-            if text:
-                context_parts.append(f"--- DOCUMENTO: {f.get('name')} ---\n{text}")
+            mime = f.get("mimeType", "")
+            data = f.get("data", "")
+            if not data: continue
+
+            if "image" in mime:
+                # Per le immagini, le passiamo come parti multimodali
+                image_parts.append({
+                    "mime_type": mime,
+                    "data": data.split(",")[1] if "," in data else data
+                })
+            else:
+                # Per i documenti, estraiamo il testo
+                text = self._extract_text_from_file(data, mime)
+                if text:
+                    context_parts.append(f"--- DOCUMENTO: {f.get('name')} ---\n{text}")
 
         brain_context = "\n\n".join(context_parts)
         
-        system_instruction = f"""Agisci come un analista esperto di Brand Strategy e Ricerca Documentale.
-Il tuo compito è rispondere alla domanda dell'utente basandoti ESCLUSIVAMENTE sui documenti forniti qui sotto.
-Se l'informazione non è presente nei documenti, dillo chiaramente.
+        system_instruction = f"""Agisci come un analista esperto di Brand Strategy e Ricerca Multimodale.
+Il tuo compito è rispondere alla domanda dell'utente basandoti sui documenti E sulle immagini fornite.
+Analizza i testi e osserva attentamente le immagini per fornire una risposta accurata.
 
-DOCUMENTI CARICATI:
+DOCUMENTI TESTUALI CARICATI:
 {brain_context}"""
 
         prompt = f"DOMANDA: {question}"
         
-        # Usa il servizio di generazione standard con il contesto arricchito
+        # Se abbiamo immagini, usiamo Gemini direttamente per la multimodalità
+        # Se non abbiamo immagini, usiamo il flusso standard (che potrebbe usare OpenAI/Anthropic come fallback)
+        if image_parts and not is_pro: # is_pro force might use other models, but here we want vision
+            try:
+                client = await self._get_gemini_client()
+                contents = []
+                for img in image_parts:
+                    contents.append(genai.types.Part.from_bytes(data=base64.b64decode(img["data"]), mime_type=img["mime_type"]))
+                
+                contents.append(genai.types.Part.from_text(text=prompt))
+                
+                response = await client.models.generate_content(
+                    model="gemini-2.0-flash",
+                    contents=contents,
+                    config=genai.types.GenerateContentConfig(
+                        system_instruction=system_instruction,
+                        temperature=0.7
+                    )
+                )
+                return {"text": response.text}
+            except Exception as e:
+                print(f"Errore Vision Brain: {str(e)}")
+                # Fallback al testo se la visione fallisce
+        
         return await self.generate_content(prompt, system_instruction, is_pro, user)
 
 llm_service = LLMService()
