@@ -17,6 +17,7 @@ class UserSettings(BaseModel):
 class UserBase(BaseModel):
     name: str
     email: EmailStr
+    role: str = "user" # "admin" or "user"
     avatarUrl: Optional[str] = None
     apiKeys: ApiKeys = Field(default_factory=ApiKeys)
     settings: UserSettings = Field(default_factory=UserSettings)

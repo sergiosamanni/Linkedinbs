@@ -14,10 +14,13 @@ export interface UserSettings {
   deepseekModel?: string;
 }
 
+export type UserRole = 'admin' | 'user';
+
 export interface User {
   id: string;
   email: string;
   name: string;
+  role: UserRole;
   avatarUrl?: string;
   createdAt: string;
   apiKeys: ApiKeys;
@@ -191,4 +194,5 @@ export type View =
   | 'linkedin_custom'
   | 'newsletter_strategy' 
   | 'newsletter_custom'
-  | 'settings';
+  | 'settings'
+  | 'admin_users';

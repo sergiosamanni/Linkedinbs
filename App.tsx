@@ -11,6 +11,7 @@ import PersonasView from './components/PersonasView';
 import PillarsView from './components/PillarsView';
 import SuiteGuidelines from './components/SuiteGuidelines';
 import SuggestedSectorsModal from './components/SuggestedSectorsModal';
+import AdminUsersView from './components/AdminUsersView';
 import { analyzeCompetitors, suggestPersonas, suggestPillars, generateSinglePersonaDetails, generateSinglePillarDetails, suggestRelevantSectors } from './services/geminiService';
 import { BrandKB, Persona, Pillar, View, MonthlyStrategy, CalendarPost, BrandProject, User, Platform, SuggestedSector } from './types';
 import { authService } from './services/authService';
@@ -263,8 +264,6 @@ const App: React.FC = () => {
             <BrandKBForm 
               data={brand} 
               onChange={setBrand} 
-              collaborators={activeProject.collaborators}
-              onChangeCollaborators={(collabs) => updateActiveProject(p => ({ ...p, collaborators: collabs }))}
               isOwner={activeProject.userId === user.id}
             />
           )}
@@ -335,6 +334,17 @@ const App: React.FC = () => {
 
           {(activeView === 'linkedin_custom' || activeView === 'newsletter_custom') && (
             <ContentCustom brand={brand} platform={activeView.split('_')[0] as Platform} isProMode={isProMode} onGlobalError={handleGlobalError} />
+          )}
+
+          {activeView === 'admin_users' && user.role === 'admin' && (
+            <AdminUsersView 
+              projects={projects}
+              onUpdateProject={async (p) => {
+                await storageService.saveProject(p);
+                setProjects(prev => prev.map(x => x.id === p.id ? p : x));
+              }}
+              onGlobalError={handleGlobalError}
+            />
           )}
         </div>
       )}

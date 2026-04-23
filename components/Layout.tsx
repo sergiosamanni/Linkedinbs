@@ -35,6 +35,8 @@ const Layout: React.FC<LayoutProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeProject = projects.find(p => p.id === activeProjectId);
 
+  const isAdmin = user.role === 'admin';
+
   const coreMenu = [
     { id: 'knowledge', label: 'Knowledge Base', icon: Database },
     { id: 'linkedin_benchmarking', label: 'Competitor Radar', icon: Search },
@@ -51,10 +53,6 @@ const Layout: React.FC<LayoutProps> = ({
   const newsletterMenu = [
     { id: 'newsletter_strategy', label: 'Strategy Planner', icon: LayoutDashboard },
     { id: 'newsletter_custom', label: 'Content Custom', icon: MessageSquarePlus },
-  ];
-
-  const contentMenu = [
-    { id: 'calendar', label: 'Editorial Calendar', icon: CalendarDays },
   ];
 
   const handleFaviconClick = (projectId: string) => {
@@ -77,6 +75,10 @@ const Layout: React.FC<LayoutProps> = ({
       reader.readAsDataURL(file);
     }
   };
+
+  const contentMenu = [
+    { id: 'calendar', label: 'Editorial Calendar', icon: CalendarDays },
+  ];
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -121,7 +123,7 @@ const Layout: React.FC<LayoutProps> = ({
                   )}
 
                   {/* Overlay per caricamento sulla favicon attiva */}
-                  {isActive && (
+                  {isActive && isAdmin && (
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                       <Camera size={12} className="text-white" />
                     </div>
@@ -138,15 +140,17 @@ const Layout: React.FC<LayoutProps> = ({
             );
           })}
           
-          <button 
-            onClick={onProjectAdd} 
-            className="w-10 h-10 rounded-lg border border-dashed border-slate-700 flex items-center justify-center text-slate-500 hover:border-blue-500 hover:text-blue-500 bg-slate-800/20 transition-all"
-          >
-            <Plus size={20} />
-          </button>
+          {isAdmin && (
+            <button 
+              onClick={onProjectAdd} 
+              className="w-10 h-10 rounded-lg border border-dashed border-slate-700 flex items-center justify-center text-slate-500 hover:border-blue-500 hover:text-blue-500 bg-slate-800/20 transition-all"
+            >
+              <Plus size={20} />
+            </button>
+          )}
         </div>
 
-        {activeProjectId && (
+        {activeProjectId && isAdmin && (
           <div className="py-4 border-t border-slate-800 w-full flex justify-center">
             <button 
               onClick={() => onProjectDelete(activeProjectId)} 
@@ -167,14 +171,16 @@ const Layout: React.FC<LayoutProps> = ({
         </div>
         
         <nav className="flex-1 p-3 space-y-4 overflow-y-auto no-scrollbar">
-          <div className="space-y-1">
-            <p className="px-3 text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Core Assets</p>
-            {coreMenu.map((item) => (
-              <button key={item.id} onClick={() => onViewChange(item.id as View)} className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-[12px] font-bold transition-all ${activeView === item.id ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
-                <item.icon size={15} /><span>{item.label}</span>
-              </button>
-            ))}
-          </div>
+          {isAdmin && (
+            <div className="space-y-1">
+              <p className="px-3 text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Core Assets</p>
+              {coreMenu.map((item) => (
+                <button key={item.id} onClick={() => onViewChange(item.id as View)} className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-[12px] font-bold transition-all ${activeView === item.id ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+                  <item.icon size={15} /><span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="space-y-1">
             <p className="px-3 text-[8px] font-black text-slate-900 uppercase tracking-widest mb-1 flex items-center"><Linkedin size={10} className="mr-1 text-blue-600" /> LinkedIn Suite</p>
@@ -205,6 +211,11 @@ const Layout: React.FC<LayoutProps> = ({
         </nav>
 
         <div className="p-3 border-t border-slate-100 space-y-1">
+          {isAdmin && (
+            <button onClick={() => onViewChange('admin_users')} className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-[12px] font-bold transition-all ${activeView === 'admin_users' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+              <Users size={15} /><span>Gestione Team</span>
+            </button>
+          )}
           <button onClick={() => onViewChange('settings')} className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-[12px] font-bold transition-all ${activeView === 'settings' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
             <SettingsIcon size={15} /><span>Impostazioni AI</span>
           </button>

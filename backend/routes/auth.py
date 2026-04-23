@@ -98,6 +98,30 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 async def read_users_me(current_user: dict = Depends(get_current_user)):
     return current_user
 
+@router.get("/users", response_model=List[UserOut])
+async def get_users(current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Permesso negato")
+    
+    db = get_db()
+    cursor = db.users.find()
+    users = []
+    async for user in cursor:
+        user["id"] = str(user["_id"])
+        users.append(user)
+    return users
+
+@router.delete("/users/{user_id}")
+async def delete_user(user_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Permesso negato")
+    
+    db = get_db()
+    result = await db.users.delete_one({"_id": ObjectId(user_id)})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    return {"status": "success"}
+
 @router.put("/settings", response_model=UserOut)
 async def update_settings(update: UserUpdate, current_user: dict = Depends(get_current_user)):
     db = get_db()
