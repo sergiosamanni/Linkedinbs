@@ -257,13 +257,7 @@ const App: React.FC = () => {
       {activeProject && (
         <div className="animate-in fade-in duration-500 max-w-5xl mx-auto space-y-10 pb-20">
           
-          <div className="flex justify-end px-2">
-            <div className={`flex items-center space-x-2 px-4 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest ${isProMode ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
-              <Zap size={10} fill="currentColor" />
-              <span>{isProMode ? 'Pro Mode' : 'Free Tier'}</span>
-              {!isProMode && <button onClick={() => setShowUnlockModal(true)} className="ml-2 hover:underline text-blue-600">Unlock Pro</button>}
-            </div>
-          </div>
+
 
           {activeView === 'knowledge' && (
             <BrandKBForm 
