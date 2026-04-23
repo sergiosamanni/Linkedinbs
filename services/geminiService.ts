@@ -173,7 +173,6 @@ Ritorna ESCLUSIVAMENTE un oggetto JSON con questa esatta struttura:
       "mediaIdea": "Idea per l'immagine/grafico se necessario"
     }
   ]
-}`;  ]
 }`;
   const result = await callAI(prompt, system, isProMode);
   const data = parseJsonFromAI(result.text);
