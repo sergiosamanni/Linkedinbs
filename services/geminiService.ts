@@ -334,27 +334,32 @@ export const generatePostContent = async (
   const pillarCtx = pillar ? `\nPILLAR EDITORIALE:\nTitolo: ${pillar.title}\nDescrizione: ${pillar.description}\n` : '';
 
   const system = `Agisci come un esperto Copywriter e Content Strategist Senior specializzato in ${post.platform}.
-DEVI SEGUIRE RIGOROSAMENTE QUESTE LINEE GUIDA DI BRAND E FORMATO:
+Sei incaricato di scrivere contenuti di altissimo livello che rispettino PEDISSEQUAMENTE le istruzioni fornite.
+
+REGOLE MANDATORIE DI FORMATTAZIONE:
+1. SE LE LINEE GUIDA DICONO "NO MARKDOWN", NON USARE MAI ** o __ per il grassetto.
+2. SE LE LINEE GUIDA RICHIEDONO "UNICODE BOLD", converti le parole importanti in caratteri matematici bold (es: 𝗕𝗼𝗹𝗱 invece di **Bold**).
+3. SE LE LINEE GUIDA RICHIEDONO UN LINK IN POSIZIONI SPECIFICHE (es: "nelle prime 3 righe"), inserisci il sito web del brand (${brand.websiteUrl}) o un placeholder appropriato esattamente dove richiesto.
+4. Rispetta rigorosamente la struttura (Hook, Body, CTA) indicata.
+
+LINEE GUIDA SPECIFICHE DA SEGUIRE:
 ${guidelines}`;
 
   const prompt = `${brandCtx}
 ${personaCtx}
 ${pillarCtx}
 
-DETTAGLI CONTENUTO DA GENERARE:
+DETTAGLI SPECIFICI PER QUESTO POST:
 Piattaforma: ${post.platform}
 Tipo Contenuto: ${post.contentType}
 Hook/Titolo: ${post.hook}
 Angolo Strategico: ${post.angle}
 Idea Visual: ${post.mediaIdea}
 
-REGOLE AGGIUNTIVE:
-1. Usa il Tono di Voce indicato nel contesto del brand.
-2. Rispetta la lunghezza e la struttura definite nelle linee guida.
-3. Se richiesto dalle linee guida, usa caratteri UNICODE BOLD invece del markdown.
-4. Fornisci un testo pronto per la pubblicazione.
-
-Genera ora il contenuto completo:`;
+ESECUZIONE:
+Genera il contenuto completo del post. Assicurati che ogni singola riga delle linee guida sopra citate sia rispettata. 
+Se le linee guida dicono di non usare markdown, usa ESCLUSIVAMENTE Unicode per evidenziare il testo.
+Se le linee guida dicono di mettere un link all'inizio, fallo.`;
 
   const result = await callAI(prompt, system, isPro);
   return { text: result.text, sources: result.sources };
