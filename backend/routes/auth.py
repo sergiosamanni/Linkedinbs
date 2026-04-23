@@ -98,7 +98,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 async def read_users_me(current_user: dict = Depends(get_current_user)):
     return current_user
 
-@router.get("/users", response_model=List[UserOut])
+@router.get("/users", response_model=list[UserOut])
 async def get_users(current_user: dict = Depends(get_current_user)):
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Permesso negato")
