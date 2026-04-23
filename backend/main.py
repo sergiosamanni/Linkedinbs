@@ -78,6 +78,22 @@ async def generate(data: dict, current_user: dict = Depends(auth.get_current_use
         print(f"Generation Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/brain/query")
+async def query_brain(data: dict, current_user: dict = Depends(auth.get_current_user)):
+    question = data.get("question")
+    files = data.get("files", []) # I file possono essere passati o presi dal brand corrente
+    is_pro = data.get("is_pro", False)
+    
+    if not question:
+        raise HTTPException(status_code=400, detail="Domanda richiesta")
+        
+    try:
+        result = await llm_service.ask_brand_brain(question, files, is_pro, user=current_user)
+        return result
+    except Exception as e:
+        print(f"Brain Query Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)

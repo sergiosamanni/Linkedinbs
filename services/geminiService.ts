@@ -433,6 +433,26 @@ export const analyzeImageAndGeneratePost = async (imageBase64: string, mimeType:
   return { text: result.text, sources: result.sources };
 };
 
+export const queryBrandBrain = async (question: string, files: BrandFile[], isPro: boolean = false): Promise<{text: string, sources: GroundingSource[]}> => {
+  const response = await fetch(`${API_URL}/api/brain/query`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      question,
+      files,
+      is_pro: isPro
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Errore durante l'interrogazione del Brain");
+  }
+
+  const data = await response.json();
+  return { text: data.text, sources: data.sources || [] };
+};
+
 export const generateDeepVisualPrompt = async (post: CalendarPost, brand: BrandKB, isPro: boolean = false): Promise<string> => {
   const brandCtx = `Brand: ${brand.name}. Settore: ${brand.description}. Stile Visivo: ${brand.visualKeywords || 'Moderno, professionale'}.`;
   

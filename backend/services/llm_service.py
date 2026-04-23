@@ -1,7 +1,10 @@
-
 import os
 import json
 import asyncio
+import base64
+import io
+from PyPDF2 import PdfReader
+from docx import Document
 from google import genai
 from openai import AsyncOpenAI
 from anthropic import AsyncAnthropic
@@ -135,5 +138,54 @@ class LLMService:
             messages=[{"role": "user", "content": prompt}]
         )
         return response.content[0].text
+
+    def _extract_text_from_file(self, file_data: str, mime_type: str) -> str:
+        try:
+            # Rimuovi prefisso base64 se presente
+            if "," in file_data:
+                file_data = file_data.split(",")[1]
+            
+            file_bytes = base64.b64decode(file_data)
+            
+            if "pdf" in mime_type:
+                reader = PdfReader(io.BytesIO(file_bytes))
+                text = ""
+                for page in reader.pages:
+                    text += page.extract_text() + "\n"
+                return text
+            elif "word" in mime_type or "docx" in mime_type:
+                doc = Document(io.BytesIO(file_bytes))
+                return "\n".join([para.text for para in doc.paragraphs])
+            elif "text" in mime_type or "plain" in mime_type or "csv" in mime_type:
+                return file_bytes.decode("utf-8", errors="ignore")
+            return ""
+        except Exception as e:
+            print(f"Errore estrazione testo ({mime_type}): {str(e)}")
+            return ""
+
+    async def ask_brand_brain(self, question: str, brand_files: list, is_pro: bool = False, user: dict = None):
+        if not brand_files:
+            return {"text": "Nessun documento caricato nella Knowledge Base. Carica dei file per usare il Brand Brain."}
+
+        # Estrai testo da tutti i file
+        context_parts = []
+        for f in brand_files:
+            text = self._extract_text_from_file(f.get("data", ""), f.get("mimeType", ""))
+            if text:
+                context_parts.append(f"--- DOCUMENTO: {f.get('name')} ---\n{text}")
+
+        brain_context = "\n\n".join(context_parts)
+        
+        system_instruction = f"""Agisci come un analista esperto di Brand Strategy e Ricerca Documentale.
+Il tuo compito è rispondere alla domanda dell'utente basandoti ESCLUSIVAMENTE sui documenti forniti qui sotto.
+Se l'informazione non è presente nei documenti, dillo chiaramente.
+
+DOCUMENTI CARICATI:
+{brain_context}"""
+
+        prompt = f"DOMANDA: {question}"
+        
+        # Usa il servizio di generazione standard con il contesto arricchito
+        return await self.generate_content(prompt, system_instruction, is_pro, user)
 
 llm_service = LLMService()
