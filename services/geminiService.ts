@@ -152,7 +152,7 @@ Cerca di creare continuità narrativa con il mese precedente, evitando ripetizio
   const prompt = `Crea un piano editoriale chirurgico per ${month+1}/${year}. PIATTAFORMA: ${platform}.
 OBIETTIVO MENSILE: ${objective}.
 
-VOLUMI RICHIESTI (Devi generare esattamente il numero di post indicato!):
+VOLUMI RICHIESTI (Devi generare esattamente il numero totale di contenuti indicato!):
 ${volumesCtx}
 
 ${historyCtx}
@@ -166,16 +166,18 @@ ${personasCtx}
 PILASTRI EDITORIALI DA USARE:
 ${pillarsCtx}
 
-Ritorna ESCLUSIVAMENTE un oggetto JSON con questa esatta struttura:
+Ritorna ESCLUSIVAMENTE un oggetto JSON. 
+IMPORTANTE: Tutti i contenuti (post, articoli, newsletter) devono essere inclusi nell'array "posts".
+Struttura esatta:
 {
   "nextMonthProjection": "Breve frase sull'intento del prossimo mese per dare continuità",
   "posts": [
     {
-      "contentType": "tipo di contenuto (es. Carousel, Video, Text)",
+      "contentType": "tipo di contenuto (es. Carousel, Video, Text, Article, Newsletter)",
       "dayOfMonth": 15,
       "pillar": "titolo del pillar esatto tra quelli sopra",
       "persona": "ruolo della persona target esatta",
-      "hook": "Un aggancio per iniziare il post (il titolo vero e proprio che l'utente vedrà nel calendario)",
+      "hook": "Un aggancio per iniziare il post",
       "angle": "L'angolatura o l'idea del contenuto in breve",
       "mediaType": "image, video, carousel o none",
       "mediaIdea": "Idea per l'immagine/grafico se necessario"
@@ -185,14 +187,19 @@ Ritorna ESCLUSIVAMENTE un oggetto JSON con questa esatta struttura:
   const result = await callAI(prompt, system, isProMode);
   const data = parseJsonFromAI(result.text);
   
-  const posts: CalendarPost[] = (data.posts || []).map((p: any) => ({
+  // Unifica eventuali array separati se l'AI ha sbagliato formato
+  let rawPosts = data.posts || [];
+  if (data.articles) rawPosts = [...rawPosts, ...data.articles.map((a: any) => ({ ...a, contentType: 'article' }))];
+  if (data.emails) rawPosts = [...rawPosts, ...data.emails.map((e: any) => ({ ...e, contentType: 'newsletter', hook: e.subject, angle: e.content }))];
+
+  const posts: CalendarPost[] = rawPosts.map((p: any) => ({
     id: Math.random().toString(36).substring(2, 11),
     platform,
-    contentType: p.contentType || (platform === 'linkedin' ? 'text' : 'email'),
+    contentType: p.contentType?.toLowerCase() || (platform === 'linkedin' ? 'text' : 'newsletter'),
     scheduledDate: new Date(year, month, p.dayOfMonth || 15).toISOString(),
     pillar: p.pillar || 'Generale',
     persona: p.persona || 'Audience',
-    hook: p.hook || 'Nuovo Post',
+    hook: p.hook || p.topic || 'Nuovo Contenuto',
     angle: p.angle || '',
     mediaType: p.mediaType || 'none',
     mediaIdea: p.mediaIdea || '',
