@@ -167,23 +167,7 @@ const UserSettings: React.FC<Props> = ({ user, onUpdate }) => {
               ))}
             </div>
 
-            <div className="pt-10 border-t border-slate-100">
-              <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">Azioni Avanzate</h4>
-              <button 
-                onClick={async () => {
-                  try {
-                    const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/make-admin-temp`);
-                    const data = await res.json();
-                    alert("Permessi Admin sbloccati con successo! Ora fai Logout e di nuovo Login.");
-                  } catch (e) {
-                    alert("Errore nello sblocco permessi. Assicurati che il server sia attivo.");
-                  }
-                }}
-                className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
-              >
-                Sblocca Permessi Admin (Temporaneo)
-              </button>
-            </div>
+
 
             <div className="pt-6 border-t border-slate-50">
               <button

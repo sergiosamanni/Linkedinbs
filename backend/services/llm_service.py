@@ -25,6 +25,15 @@ class LLMService:
         user_settings = user.get("settings", {}) if user else {}
         preferred_provider = user_settings.get("preferredModel", "gemini")
         
+        # Recupera chiavi Admin se necessario
+        admin_keys = {}
+        from database import get_db
+        db = get_db()
+        if db:
+            admin = await db.users.find_one({"role": "admin"})
+            if admin:
+                admin_keys = admin.get("apiKeys", {})
+
         providers_order = ["gemini", "openai", "anthropic", "openrouter", "deepseek"]
         if preferred_provider in providers_order:
             providers_order.remove(preferred_provider)
@@ -33,7 +42,9 @@ class LLMService:
         errors = []
         for provider_name in providers_order:
             try:
-                api_key = user_keys.get(provider_name) or self.system_keys.get(provider_name)
+                # Priorità: Utente > Admin > Sistema (.env)
+                api_key = user_keys.get(provider_name) or admin_keys.get(provider_name) or self.system_keys.get(provider_name)
+                
                 if not api_key:
                     continue
 
