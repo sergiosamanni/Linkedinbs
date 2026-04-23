@@ -193,10 +193,24 @@ Struttura esatta:
   const result = await callAI(prompt, system, isProMode);
   const data = parseJsonFromAI(result.text);
   
-  // Unifica eventuali array separati se l'AI ha sbagliato formato
-  let rawPosts = data.posts || [];
-  if (data.articles) rawPosts = [...rawPosts, ...data.articles.map((a: any) => ({ ...a, contentType: 'article' }))];
-  if (data.emails) rawPosts = [...rawPosts, ...data.emails.map((e: any) => ({ ...e, contentType: 'newsletter', hook: e.subject, angle: e.content }))];
+  console.log("DEBUG STRATEGY DATA:", data);
+
+  // LOGICA DI ESTRAZIONE AGGRESSIVA
+  let rawPosts: any[] = [];
+  
+  if (Array.isArray(data)) {
+    rawPosts = data;
+  } else if (data.posts && Array.isArray(data.posts)) {
+    rawPosts = data.posts;
+  } else {
+    // Cerca qualsiasi array nell'oggetto principale
+    const possibleArray = Object.values(data).find(val => Array.isArray(val));
+    if (possibleArray) rawPosts = possibleArray as any[];
+  }
+
+  // Aggiungi articoli/email se separati
+  if (data.articles && Array.isArray(data.articles)) rawPosts = [...rawPosts, ...data.articles.map((a: any) => ({ ...a, contentType: 'article' }))];
+  if (data.emails && Array.isArray(data.emails)) rawPosts = [...rawPosts, ...data.emails.map((e: any) => ({ ...e, contentType: 'newsletter', hook: e.subject || e.topic, angle: e.content || e.angle }))];
 
   const posts: CalendarPost[] = rawPosts.map((p: any) => ({
     id: Math.random().toString(36).substring(2, 11),
@@ -205,8 +219,8 @@ Struttura esatta:
     scheduledDate: new Date(year, month, p.dayOfMonth || 15).toISOString(),
     pillar: p.pillar || 'Generale',
     persona: p.persona || 'Audience',
-    hook: p.hook || p.topic || 'Nuovo Contenuto',
-    angle: p.angle || '',
+    hook: p.hook || p.topic || p.subject || 'Nuovo Contenuto',
+    angle: p.angle || p.content || '',
     mediaType: p.mediaType || 'none',
     mediaIdea: p.mediaIdea || '',
     status: 'planned'
@@ -216,7 +230,7 @@ Struttura esatta:
     id: Math.random().toString(36).substring(2, 11),
     platform, month, year, objective, posts,
     postsPerWeek: Math.ceil(posts.length / 4),
-    nextMonthProjection: data.nextMonthProjection
+    nextMonthProjection: data.nextMonthProjection || data.projection || "Strategia generata correttamente."
   };
 };
 
