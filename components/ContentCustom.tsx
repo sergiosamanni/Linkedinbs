@@ -112,7 +112,7 @@ const ContentCustom: React.FC<Props> = ({ brand, platform, isProMode, onGlobalEr
             className="w-full px-5 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-bold focus:bg-white focus:border-blue-500 transition-all" 
           />
 
-          {suggestedObjectives.length > 0 && (
+          {suggestedObjectives.length > 0 ? (
             <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-2">
               {suggestedObjectives.map((obj, i) => (
                 <button 
@@ -127,6 +127,8 @@ const ContentCustom: React.FC<Props> = ({ brand, platform, isProMode, onGlobalEr
                 </button>
               ))}
             </div>
+          ) : !suggesting && post.objective === '' && (
+            <p className="text-[9px] text-slate-400 italic px-1">Clicca su suggerisci per ricevere idee strategiche.</p>
           )}
         </div>
         

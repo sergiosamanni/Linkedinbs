@@ -26,11 +26,19 @@ const callAI = async (prompt: string, systemInstruction: string = "", isPro: boo
 // Funzione helper per pulire l'output JSON dell'AI (spesso necessario)
 const parseJsonFromAI = (text: string) => {
   try {
-    let cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    // Prova a trovare l'inizio e la fine di un array [ ] o oggetto { }
+    const arrayMatch = text.match(/\[[\s\S]*\]/);
+    const objectMatch = text.match(/\{[\s\S]*\}/);
+    
+    let jsonToParse = text;
+    if (arrayMatch) jsonToParse = arrayMatch[0];
+    else if (objectMatch) jsonToParse = objectMatch[0];
+
+    let cleaned = jsonToParse.replace(/```json/g, "").replace(/```/g, "").trim();
     return JSON.parse(cleaned);
   } catch (e) {
-    console.error("Errore parsing JSON AI:", text);
-    throw new Error("L'AI ha restituito un formato non valido.");
+    console.error("Errore parsing JSON AI. Testo originale:", text);
+    throw new Error("L'AI ha risposto con un formato non leggibile. Riprova tra un istante.");
   }
 };
 
