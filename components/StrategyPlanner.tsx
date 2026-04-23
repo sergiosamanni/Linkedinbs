@@ -142,17 +142,22 @@ const StrategyPlanner: React.FC<Props> = ({ brand, personas, pillars, platform, 
               {expandedYears[year] && (
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50/20">
                   {strategiesByYear[year].sort((a,b) => a.month - b.month).map(s => (
-                    <div key={s.id} className="p-5 rounded-2xl border border-slate-100 bg-white shadow-sm hover:shadow-md transition-all group">
+                    <div key={s.id} className="p-5 rounded-2xl border border-slate-100 bg-white shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-blue-600 opacity-20" />
                       <div className="flex justify-between items-start mb-3">
                         <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded-md">{months[s.month]}</span>
-                        <button onClick={() => onStrategyDeleted(s.id)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={14} /></button>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-[8px] font-black text-slate-300 uppercase">{s.platform}</span>
+                          <button onClick={() => onStrategyDeleted(s.id)} className="text-slate-200 hover:text-red-500 transition-all"><Trash2 size={12} /></button>
+                        </div>
                       </div>
-                      <p className="text-xs font-bold text-slate-800 leading-snug mb-4 line-clamp-3">{s.objective}</p>
+                      <h5 className="text-[10px] font-black text-slate-900 uppercase tracking-tight mb-2 line-clamp-1">{s.objective}</h5>
+                      <p className="text-[9px] font-bold text-slate-500 leading-snug mb-4 line-clamp-3 italic">"{s.nextMonthProjection || 'Nessuna proiezione'}"</p>
                       <div className="pt-3 border-t border-slate-50 flex justify-between items-center">
                         <span className="text-[9px] font-black text-slate-400 uppercase">{s.posts.length} Contenuti</span>
-                        <div className="flex -space-x-1">
+                        <div className="flex -space-x-1.5">
                           {Array.from(new Set(s.posts.map(p => p.contentType))).map((type, i) => (
-                            <div key={i} className={`w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold text-white shadow-sm ${
+                            <div key={i} title={type} className={`w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold text-white shadow-sm ${
                               (type as string) === 'post' ? 'bg-blue-500' : 
                               (type as string) === 'article' ? 'bg-emerald-500' : 
                               (type as string) === 'email' ? 'bg-amber-500' : 'bg-indigo-500'

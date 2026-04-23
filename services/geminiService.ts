@@ -44,13 +44,15 @@ export const refineBrandField = async (field: string, value: string, isPro: bool
 // Helper: costruisce un contesto testuale ricco per l'AI
 const buildBrandContext = (brand: BrandKB): string => {
   let ctx = `Brand Name: ${brand.name}\n`;
-  if (brand.description) ctx += `Description: ${brand.description}\n`;
+  if (brand.websiteUrl) ctx += `Website: ${brand.websiteUrl}\n`;
+  if (brand.description) ctx += `Description/Vision: ${brand.description}\n`;
   if (brand.mission) ctx += `Mission: ${brand.mission}\n`;
   if (brand.usp) ctx += `Unique Selling Proposition (USP): ${brand.usp}\n`;
   if (brand.values) ctx += `Brand Values: ${brand.values}\n`;
   if (brand.toneOfVoice) ctx += `Tone of Voice: ${brand.toneOfVoice}\n`;
   if (brand.brandPersonality) ctx += `Brand Personality: ${brand.brandPersonality}\n`;
   if (brand.targetSummary) ctx += `Target Audience Summary: ${brand.targetSummary}\n`;
+  if (brand.visualKeywords) ctx += `Visual Style Keywords: ${brand.visualKeywords}\n`;
   
   if (brand.competitorPostInsights && brand.competitorPostInsights.overallMarketGaps?.length > 0) {
     ctx += `\nCompetitor Market Gaps (LinkedIn):\n`;
@@ -111,11 +113,12 @@ Esempio formato:
 };
 
 export const suggestStrategyObjectives = async (brand: BrandKB, platform: Platform, isPro: boolean = false): Promise<string[]> => {
-  const prompt = `Suggerisci 3 obiettivi strategici mensili per ${brand.name} su ${platform}. 
-  Ritorna ESATTAMENTE un array JSON di stringhe, senza nient'altro. Ad esempio: ["Obiettivo 1", "Obiettivo 2"]`;
-  const result = await callAI(prompt, "Strategist", isPro);
+  const brandContext = buildBrandContext(brand);
+  const prompt = `Analizza il posizionamento e le carenze di mercato del seguente brand:\n\n${brandContext}\n\nSuggerisci 3 obiettivi strategici iper-specifici per una campagna su ${platform}. 
+  Ritorna ESATTAMENTE un array JSON di stringhe (es: ["Lancio nuovo USP...", "Posizionamento per Direttori..."]). Non includere oggetti aggiuntivi.`;
+  const result = await callAI(prompt, "Strategic Marketing Planner", isPro);
   const data = parseJsonFromAI(result.text);
-  return Array.isArray(data) ? data : (data.objectives || data.items || data.obiettivi || []);
+  return extractArray(data);
 };
 
 export const generateMonthlyStrategy = async (
@@ -123,20 +126,69 @@ export const generateMonthlyStrategy = async (
   objective: string, counts: Record<string, number>, month: number, year: number,
   previousStrategy?: MonthlyStrategy, isProMode: boolean = false
 ): Promise<MonthlyStrategy> => {
-  const system = "Agisci come un LinkedIn Content Strategist Senior.";
-  const prompt = `Genera la strategia del mese ${month+1}/${year} per ${brand.name}. Obiettivo: ${objective}. Ritorna JSON con "posts" e "nextMonthProjection".`;
+  const system = "Agisci come un Direttore Editoriale e LinkedIn Strategist Senior.";
+  const brandContext = buildBrandContext(brand);
+  const personasCtx = personas.map(p => `- ${p.role}: ${p.pains}`).join('\n');
+  const pillarsCtx = pillars.map(p => `- ${p.title}`).join('\n');
+  const volumesCtx = Object.entries(counts).filter(([_, v]) => v > 0).map(([k, v]) => `${v} x ${k}`).join(', ');
+
+  let historyCtx = "";
+  if (previousStrategy) {
+    historyCtx = `CONTESTO MESE PRECEDENTE:
+Obiettivo: ${previousStrategy.objective}
+Proiezione: ${previousStrategy.nextMonthProjection || "N/A"}
+Numero Post: ${previousStrategy.posts.length}
+Cerca di creare continuità narrativa con il mese precedente, evitando ripetizioni ma mantenendo il focus strategico evolutivo.`;
+  }
+
+  const prompt = `Crea un piano editoriale chirurgico per ${month+1}/${year}. PIATTAFORMA: ${platform}.
+OBIETTIVO MENSILE: ${objective}.
+
+VOLUMI RICHIESTI (Devi generare esattamente il numero di post indicato!):
+${volumesCtx}
+
+${historyCtx}
+
+CONTESTO BRAND E COMPETITOR:
+${brandContext}
+
+TARGET PERSONAS DA COLPIRARE:
+${personasCtx}
+
+PILASTRI EDITORIALI DA USARE:
+${pillarsCtx}
+
+Ritorna ESCLUSIVAMENTE un oggetto JSON con questa esatta struttura:
+{
+  "nextMonthProjection": "Breve frase sull'intento del prossimo mese per dare continuità",
+  "posts": [
+    {
+      "contentType": "tipo di contenuto (es. Carousel, Video, Text)",
+      "dayOfMonth": 15,
+      "pillar": "titolo del pillar esatto tra quelli sopra",
+      "persona": "ruolo della persona target esatta",
+      "hook": "Un aggancio per iniziare il post (il titolo vero e proprio che l'utente vedrà nel calendario)",
+      "angle": "L'angolatura o l'idea del contenuto in breve",
+      "mediaType": "image, video, carousel o none",
+      "mediaIdea": "Idea per l'immagine/grafico se necessario"
+    }
+  ]
+}`;  ]
+}`;
   const result = await callAI(prompt, system, isProMode);
   const data = parseJsonFromAI(result.text);
   
   const posts: CalendarPost[] = (data.posts || []).map((p: any) => ({
     id: Math.random().toString(36).substring(2, 11),
     platform,
-    contentType: p.contentType || (platform === 'linkedin' ? 'post' : 'email'),
-    scheduledDate: new Date(year, month, p.dayOfMonth || 1).toISOString(),
+    contentType: p.contentType || (platform === 'linkedin' ? 'text' : 'email'),
+    scheduledDate: new Date(year, month, p.dayOfMonth || 15).toISOString(),
     pillar: p.pillar || 'Generale',
     persona: p.persona || 'Audience',
-    hook: p.hook || '',
+    hook: p.hook || 'Nuovo Post',
     angle: p.angle || '',
+    mediaType: p.mediaType || 'none',
+    mediaIdea: p.mediaIdea || '',
     status: 'planned'
   }));
 

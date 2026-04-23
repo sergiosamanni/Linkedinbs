@@ -149,8 +149,17 @@ const PostCreator: React.FC<Props> = ({ brand, post, persona, pillar, onUpdate, 
               <span className="text-[9px] font-black text-slate-400 uppercase flex items-center gap-1.5 tracking-tight">
                 <Target size={10} /> {post.persona}
               </span>
-              <p className="text-[11px] font-bold text-slate-900 leading-tight line-clamp-2">{post.hook}</p>
+              <p className="text-[12px] font-black text-slate-900 leading-snug">{post.hook}</p>
             </div>
+
+            {(post.mediaType && post.mediaType !== 'none') && (
+              <div className="mb-4 bg-orange-50/50 border border-orange-100 rounded-xl p-3 flex flex-col space-y-1.5">
+                <span className="text-[9px] font-black uppercase text-orange-600 flex items-center gap-1.5 tracking-widest">
+                  <Palette size={10} /> Materiale Visivo: {post.mediaType}
+                </span>
+                <p className="text-[10px] text-orange-800 font-medium leading-relaxed italic">{post.mediaIdea || "Nessuna idea fornita dall'AI."}</p>
+              </div>
+            )}
             
             {post.fullContent ? (
               <div className="relative group/text mb-4">

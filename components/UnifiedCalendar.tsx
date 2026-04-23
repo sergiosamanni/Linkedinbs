@@ -202,6 +202,30 @@ const UnifiedCalendar: React.FC<Props> = ({ brand, personas, pillars, strategies
         </div>
       </div>
 
+      {/* Monthly Objectives Banner */}
+      <div className="flex flex-wrap gap-4">
+        {(strategies || [])
+          .filter(s => s.month === currentMonth && s.year === currentYear)
+          .map(s => (
+            <div key={s.id} className="flex-1 min-w-[300px] bg-slate-900 text-white p-5 rounded-[2rem] shadow-xl relative overflow-hidden group">
+               <div className={`absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full opacity-10 blur-3xl transition-all group-hover:scale-150 ${s.platform === 'linkedin' ? 'bg-blue-400' : 'bg-purple-400'}`} />
+               <div className="flex items-center space-x-3 mb-2">
+                  <div className={`p-1.5 rounded-lg ${s.platform === 'linkedin' ? 'bg-blue-600' : 'bg-purple-600'}`}>
+                    {s.platform === 'linkedin' ? <Linkedin size={14} /> : <Mail size={14} />}
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">{s.platform} Strategy</span>
+               </div>
+               <p className="text-sm font-black leading-tight">{s.objective}</p>
+               <p className="text-[10px] mt-2 font-bold text-slate-400 italic line-clamp-1">"{s.nextMonthProjection}"</p>
+            </div>
+          ))}
+        {strategies.filter(s => s.month === currentMonth && s.year === currentYear).length === 0 && (
+          <div className="w-full bg-slate-50 border border-slate-200 border-dashed p-6 rounded-[2rem] text-center">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nessuna strategia pianificata per questo mese.</p>
+          </div>
+        )}
+      </div>
+
       {viewMode === 'grid' ? (
         <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">
           <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-100">

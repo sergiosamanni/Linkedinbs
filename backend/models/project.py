@@ -107,6 +107,13 @@ class CalendarPost(BaseModel):
     status: str = "planned"
     generatedContent: Optional[str] = None
 
+    @field_validator('hook', 'angle', 'pillar', 'persona', mode='before')
+    @classmethod
+    def convert_list_to_str(cls, v):
+        if isinstance(v, list):
+            return '. '.join(str(item) for item in v)
+        return v
+
 class MonthlyStrategy(BaseModel):
     model_config = ConfigDict(extra="allow")
     id: str
