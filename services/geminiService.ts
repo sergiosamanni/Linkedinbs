@@ -380,23 +380,41 @@ Usa ESCLUSIVAMENTE Unicode per evidenziare il testo. Evita paragrafi lunghi.`;
   return { text: processedText, sources: result.sources };
 };
 
-export const refineCustomPost = async (brand: BrandKB, platform: Platform, objective: string, baseText: string, isPro: boolean = false): Promise<{text: string, sources: GroundingSource[]}> => {
-  const guidelines = platform === 'linkedin' ? brand.linkedinGuidelines : brand.newsletterGuidelines;
+export const suggestObjectives = async (brand: BrandKB, platform: Platform, contentType: ContentType, isPro: boolean = false): Promise<string[]> => {
+  const system = "Agisci come un Content Strategist esperto.";
+  const brandCtx = buildBrandContext(brand);
+  const prompt = `Analizza questo brand e suggerisci 5 obiettivi specifici e strategici per un ${contentType} su ${platform}.
+  Brand: ${brand.name}
+  Contesto: ${brandCtx}
   
-  const system = `Agisci come un esperto Copywriter. Ottimizza il testo seguendo queste linee guida:
-${guidelines}
-RICORDA: NO MARKDOWN. Usa solo Unicode Bold. Usa frasi brevi e incisive.`;
+  Ritorna ESCLUSIVAMENTE un array JSON di stringhe (max 5 obiettivi).
+  Esempio: ["Aumentare la lead generation", "Posizionare il CEO come leader di pensiero"]`;
+  
+  const result = await callAI(prompt, system, isPro);
+  return parseJsonFromAI(result.text);
+};
 
-  const prompt = `Brand: ${brand.name}. Obiettivo: ${objective}.
+export const refineCustomPost = async (brand: BrandKB, platform: Platform, contentType: ContentType, objective: string, baseText: string, isPro: boolean = false): Promise<{text: string, sources: GroundingSource[]}> => {
+  let guidelines = "";
+  if (platform === 'linkedin') {
+    guidelines = contentType === 'article' ? brand.linkedinArticleGuidelines : brand.linkedinGuidelines;
+  } else {
+    guidelines = brand.newsletterGuidelines;
+  }
+  
+  const system = `Agisci come un esperto Copywriter Senior. Ottimizza il testo per un ${contentType} su ${platform} seguendo queste linee guida:
+${guidelines}
+RICORDA: NO MARKDOWN. Usa solo Unicode Bold (es: 𝗕𝗼𝗹𝗱). Usa frasi brevi e incisive. 
+Se è un articolo, usa una struttura narrativa coinvolgente con titoli chiari.`;
+
+  const prompt = `Brand: ${brand.name}. Obiettivo: ${objective}. Formato: ${contentType}.
 Testo da ottimizzare:
 ${baseText}
 
 Ritorna il testo raffinato e pronto per la pubblicazione su ${platform}.`;
   
   const result = await callAI(prompt, system, isPro);
-  
   const processedText = convertMarkdownToUnicodeBold(result.text);
-  
   return { text: processedText, sources: result.sources };
 };
 

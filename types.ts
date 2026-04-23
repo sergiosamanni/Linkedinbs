@@ -177,6 +177,7 @@ export interface GroundingSource {
 
 export interface CustomPost {
   platform: Platform;
+  contentType: ContentType;
   objective: string;
   baseText: string;
   fullContent?: string;
