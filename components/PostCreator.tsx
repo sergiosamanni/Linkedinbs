@@ -150,12 +150,25 @@ const PostCreator: React.FC<Props> = ({ brand, post, persona, pillar, onUpdate, 
       <div className="p-5 flex-1 flex flex-col space-y-4">
         {isEditing ? (
           <div className="flex-1 flex flex-col space-y-3">
-            <textarea 
-              value={post.fullContent || ""} 
-              onChange={(e) => onUpdate({ ...post, fullContent: e.target.value })} 
-              className="flex-1 w-full text-[11px] font-medium border border-slate-100 rounded-xl p-4 bg-slate-50 focus:bg-white focus:border-blue-300 outline-none resize-none leading-relaxed transition-all min-h-[150px]" 
-              placeholder="Contenuto del post..." 
-            />
+            <div className="space-y-1">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Titolo / Hook</label>
+              <input 
+                type="text"
+                value={post.hook || ""} 
+                onChange={(e) => onUpdate({ ...post, hook: e.target.value })} 
+                className="w-full text-[12px] font-black border border-slate-100 rounded-xl px-4 py-3 bg-slate-50 focus:bg-white focus:border-blue-300 outline-none transition-all" 
+                placeholder="Titolo o Hook del post..." 
+              />
+            </div>
+            <div className="space-y-1 flex-1 flex flex-col">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Corpo del Testo</label>
+              <textarea 
+                value={post.fullContent || ""} 
+                onChange={(e) => onUpdate({ ...post, fullContent: e.target.value })} 
+                className="flex-1 w-full text-[11px] font-medium border border-slate-100 rounded-xl p-4 bg-slate-50 focus:bg-white focus:border-blue-300 outline-none resize-none leading-relaxed transition-all min-h-[150px]" 
+                placeholder="Contenuto del post..." 
+              />
+            </div>
             <button 
               onClick={() => setIsEditing(false)} 
               className={`w-full py-2.5 text-white rounded-xl text-[9px] font-black uppercase tracking-widest ${platformBtn}`}
@@ -165,12 +178,33 @@ const PostCreator: React.FC<Props> = ({ brand, post, persona, pillar, onUpdate, 
           </div>
         ) : (
           <div className="flex-1 flex flex-col">
-            <div className="space-y-1 border-l-2 border-slate-900 pl-3 py-0.5 mb-4">
+            <div className="space-y-1 border-l-2 border-slate-900 pl-3 py-0.5 mb-4 group/title relative">
               <span className="text-[9px] font-black text-slate-400 uppercase flex items-center gap-1.5 tracking-tight">
                 <Target size={10} /> {post.persona}
               </span>
               <p className="text-[12px] font-black text-slate-900 leading-snug">{post.hook}</p>
             </div>
+
+            {post.fullContent && (
+              <div className="flex items-center gap-2 mb-4">
+                <button 
+                  onClick={() => alert("Funzione API LinkedIn in fase di configurazione. Presto potrai inviare questo post direttamente alle bozze!")}
+                  className="flex-1 py-2 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-800 transition-all"
+                >
+                  <Linkedin size={12} />
+                  Carica in Programmati
+                </button>
+                <a 
+                  href="https://www.linkedin.com/feed/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="px-3 py-2 border border-slate-200 text-slate-400 rounded-xl hover:bg-slate-50 hover:text-blue-600 transition-all"
+                  title="Vai su LinkedIn"
+                >
+                  <Link2 size={14} />
+                </a>
+              </div>
+            )}
 
             {(post.mediaType && post.mediaType !== 'none') && (
               <div className="mb-4 bg-orange-50/50 border border-orange-100 rounded-xl p-3 flex flex-col space-y-1.5">

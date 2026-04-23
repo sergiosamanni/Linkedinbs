@@ -141,6 +141,7 @@ export interface CalendarPost {
   angle: string;
   status: 'planned' | 'drafted' | 'published';
   fullContent?: string;
+  customTitle?: string;
   sources?: GroundingSource[];
   mediaType?: MediaType;
   suggestedMediaType?: MediaType;
