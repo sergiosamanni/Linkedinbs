@@ -352,6 +352,13 @@ const App: React.FC = () => {
           activeView={activeView}
           onToggleSelection={(key) => setSelectedSectorKeys(prev => prev.includes(key) ? prev.filter(x => x !== key) : [...prev, key])}
           onBatchImport={handleBatchImport}
+          onAddCustomSector={(sector) => {
+            setSuggestedSectors(prev => {
+              const newIdx = prev.length;
+              setSelectedSectorKeys(keys => [...keys, activeView === 'personas' ? `${newIdx}-0` : `${newIdx}`]);
+              return [...prev, sector];
+            });
+          }}
         />
 
       {showUnlockModal && (

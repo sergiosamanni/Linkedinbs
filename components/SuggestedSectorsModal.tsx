@@ -12,11 +12,26 @@ interface Props {
   activeView: View;
   onToggleSelection: (key: string) => void;
   onBatchImport: () => void;
+  onAddCustomSector: (sector: SuggestedSector) => void;
 }
 
 const SuggestedSectorsModal: React.FC<Props> = ({ 
-  isOpen, onClose, loading, isBatchImporting, sectors, selectedKeys, activeView, onToggleSelection, onBatchImport 
+  isOpen, onClose, loading, isBatchImporting, sectors, selectedKeys, activeView, onToggleSelection, onBatchImport, onAddCustomSector 
 }) => {
+  const [manualSector, setManualSector] = React.useState('');
+  const [manualRole, setManualRole] = React.useState('');
+
+  const handleAddManual = () => {
+    if (!manualSector) return;
+    onAddCustomSector({
+      sector: manualSector,
+      rationale: "Inserito manualmente dall'utente.",
+      targetRoles: [{ role: manualRole || "Professionista / Decision Maker", focus: "Obiettivo personalizzato" }]
+    });
+    setManualSector('');
+    setManualRole('');
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -38,6 +53,18 @@ const SuggestedSectorsModal: React.FC<Props> = ({
         </div>
 
         <div className="flex-1 overflow-y-auto no-scrollbar py-4 space-y-6">
+          <div className="bg-slate-50 border border-slate-200 rounded-[1.5rem] p-5 shadow-inner">
+            <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 flex items-center space-x-2"><Factory size={12} /><span>Aggiunta Manuale Settore O Target</span></h5>
+            <div className="flex flex-col md:flex-row gap-3">
+              <input value={manualSector} onChange={e => setManualSector(e.target.value)} placeholder={activeView === 'pillars' ? "Es: Settore Healthcare..." : "Es: Medicale..."} className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-blue-500" />
+              {activeView === 'personas' && (
+                <input value={manualRole} onChange={e => setManualRole(e.target.value)} placeholder="Ruolo Es: Direttore Sanitario..." className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-blue-500" />
+              )}
+              <button disabled={!manualSector} onClick={handleAddManual} className="px-6 py-3 bg-slate-900 text-white rounded-xl text-xs font-black uppercase shadow-lg hover:bg-slate-800 disabled:opacity-30">Aggiungi</button>
+            </div>
+            <p className="text-[9px] text-slate-400 mt-3 font-medium italic">Se non trovi quello che cerchi, scrivilo tu: lo selezionerai e l'AI lo elaborerà insieme agli altri.</p>
+          </div>
+
           {loading ? (
             <div className="h-64 flex flex-col items-center justify-center text-center space-y-4">
               <Loader2 size={40} className="animate-spin text-blue-600" />
