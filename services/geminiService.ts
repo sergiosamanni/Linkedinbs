@@ -320,14 +320,59 @@ export const generateSinglePillarDetails = async (brand: BrandKB, title: string,
 export const generatePostContent = async (
   brand: BrandKB, post: CalendarPost, persona?: Persona, pillar?: Pillar, isPro: boolean = false
 ): Promise<{text: string, sources: GroundingSource[]}> => {
-  const prompt = `Genera un post di tipo ${post.contentType} per ${brand.name}. Hook: ${post.hook}. Angolo: ${post.angle}.`;
-  const result = await callAI(prompt, "Copywriter", isPro);
+  // Selezione linee guida specifiche
+  let guidelines = brand.linkedinGuidelines;
+  if (post.platform === 'newsletter') {
+    guidelines = brand.newsletterGuidelines;
+  } else if (post.platform === 'linkedin') {
+    if (post.contentType === 'article') guidelines = brand.linkedinArticleGuidelines;
+    else if (post.contentType === 'linkedin_newsletter') guidelines = brand.linkedinNewsletterGuidelines;
+  }
+
+  const brandCtx = buildBrandContext(brand);
+  const personaCtx = persona ? `\nTARGET PERSONA:\nRuolo: ${persona.role}\nPains: ${persona.pains}\nGoals: ${persona.goals}\n` : '';
+  const pillarCtx = pillar ? `\nPILLAR EDITORIALE:\nTitolo: ${pillar.title}\nDescrizione: ${pillar.description}\n` : '';
+
+  const system = `Agisci come un esperto Copywriter e Content Strategist Senior specializzato in ${post.platform}.
+DEVI SEGUIRE RIGOROSAMENTE QUESTE LINEE GUIDA DI BRAND E FORMATO:
+${guidelines}`;
+
+  const prompt = `${brandCtx}
+${personaCtx}
+${pillarCtx}
+
+DETTAGLI CONTENUTO DA GENERARE:
+Piattaforma: ${post.platform}
+Tipo Contenuto: ${post.contentType}
+Hook/Titolo: ${post.hook}
+Angolo Strategico: ${post.angle}
+Idea Visual: ${post.mediaIdea}
+
+REGOLE AGGIUNTIVE:
+1. Usa il Tono di Voce indicato nel contesto del brand.
+2. Rispetta la lunghezza e la struttura definite nelle linee guida.
+3. Se richiesto dalle linee guida, usa caratteri UNICODE BOLD invece del markdown.
+4. Fornisci un testo pronto per la pubblicazione.
+
+Genera ora il contenuto completo:`;
+
+  const result = await callAI(prompt, system, isPro);
   return { text: result.text, sources: result.sources };
 };
 
 export const refineCustomPost = async (brand: BrandKB, platform: Platform, objective: string, baseText: string, isPro: boolean = false): Promise<{text: string, sources: GroundingSource[]}> => {
-  const prompt = `Ottimizza questo post per ${platform}. Obiettivo: ${objective}. Testo base: ${baseText}.`;
-  const result = await callAI(prompt, "Expert Copywriter", isPro);
+  const guidelines = platform === 'linkedin' ? brand.linkedinGuidelines : brand.newsletterGuidelines;
+  
+  const system = `Agisci come un esperto Copywriter. Ottimizza il testo seguendo queste linee guida:
+${guidelines}`;
+
+  const prompt = `Brand: ${brand.name}. Obiettivo: ${objective}.
+Testo da ottimizzare:
+${baseText}
+
+Ritorna il testo raffinato e pronto per la pubblicazione su ${platform}.`;
+  
+  const result = await callAI(prompt, system, isPro);
   return { text: result.text, sources: result.sources };
 };
 
