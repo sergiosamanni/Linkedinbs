@@ -317,6 +317,19 @@ export const generateSinglePillarDetails = async (brand: BrandKB, title: string,
   return parseJsonFromAI(result.text);
 };
 
+// Funzione per forzare la conversione da markdown a unicode bold
+const convertMarkdownToUnicodeBold = (text: string): string => {
+  const normalChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const boldChars   = "𝗔𝗕𝗖𝗗𝗘𝗙𝗚𝗛𝗜𝗝𝗞𝗟𝗠𝗡𝗢𝗣𝗤𝗥𝗦𝗧𝗨𝗩𝗪𝗫𝗬𝗭𝗮𝗯𝗰𝗱𝗲𝗳𝗴𝗵𝗶𝗷𝗸𝗹𝗺𝗻𝗼𝗽𝗾𝗿𝘀𝘁𝘂𝘃𝘄𝘅𝘆𝘇𝟬𝟭𝟮𝟯𝟰𝟱𝟲𝟳𝟴𝟵";
+  
+  return text.replace(/\*\*(.*?)\*\*/g, (match, p1) => {
+    return p1.split('').map((char: string) => {
+      const idx = normalChars.indexOf(char);
+      return idx !== -1 ? boldChars[idx] : char;
+    }).join('');
+  });
+};
+
 export const generatePostContent = async (
   brand: BrandKB, post: CalendarPost, persona?: Persona, pillar?: Pillar, isPro: boolean = false
 ): Promise<{text: string, sources: GroundingSource[]}> => {
@@ -336,11 +349,10 @@ export const generatePostContent = async (
   const system = `Agisci come un esperto Copywriter e Content Strategist Senior specializzato in ${post.platform}.
 Sei incaricato di scrivere contenuti di altissimo livello che rispettino PEDISSEQUAMENTE le istruzioni fornite.
 
-REGOLE MANDATORIE DI FORMATTAZIONE:
-1. SE LE LINEE GUIDA DICONO "NO MARKDOWN", NON USARE MAI ** o __ per il grassetto.
-2. SE LE LINEE GUIDA RICHIEDONO "UNICODE BOLD", converti le parole importanti in caratteri matematici bold (es: 𝗕𝗼𝗹𝗱 invece di **Bold**).
-3. SE LE LINEE GUIDA RICHIEDONO UN LINK IN POSIZIONI SPECIFICHE (es: "nelle prime 3 righe"), inserisci il sito web del brand (${brand.websiteUrl}) o un placeholder appropriato esattamente dove richiesto.
-4. Rispetta rigorosamente la struttura (Hook, Body, CTA) indicata.
+REGOLE MANDATORIE DI FORMATTAZIONE E STILE:
+1. NO MARKDOWN: NON USARE MAI ** o __ per il grassetto. Converti le parole importanti in caratteri matematici bold (es: 𝗕𝗼𝗹𝗱 invece di **Bold**).
+2. LEGGIBILITÀ: Usa frasi brevi, incisive e paragrafi di massimo 2-3 righe per facilitare la lettura veloce a schermo.
+3. LINK: Se le linee guida richiedono un link, posizionalo nelle prime 3 righe del post usando l'URL del brand (${brand.websiteUrl}).
 
 LINEE GUIDA SPECIFICHE DA SEGUIRE:
 ${guidelines}`;
@@ -358,18 +370,22 @@ Idea Visual: ${post.mediaIdea}
 
 ESECUZIONE:
 Genera il contenuto completo del post. Assicurati che ogni singola riga delle linee guida sopra citate sia rispettata. 
-Se le linee guida dicono di non usare markdown, usa ESCLUSIVAMENTE Unicode per evidenziare il testo.
-Se le linee guida dicono di mettere un link all'inizio, fallo.`;
+Usa ESCLUSIVAMENTE Unicode per evidenziare il testo. Evita paragrafi lunghi.`;
 
   const result = await callAI(prompt, system, isPro);
-  return { text: result.text, sources: result.sources };
+  
+  // Applica post-processing di sicurezza per eliminare eventuali asterischi residui
+  const processedText = convertMarkdownToUnicodeBold(result.text);
+  
+  return { text: processedText, sources: result.sources };
 };
 
 export const refineCustomPost = async (brand: BrandKB, platform: Platform, objective: string, baseText: string, isPro: boolean = false): Promise<{text: string, sources: GroundingSource[]}> => {
   const guidelines = platform === 'linkedin' ? brand.linkedinGuidelines : brand.newsletterGuidelines;
   
   const system = `Agisci come un esperto Copywriter. Ottimizza il testo seguendo queste linee guida:
-${guidelines}`;
+${guidelines}
+RICORDA: NO MARKDOWN. Usa solo Unicode Bold. Usa frasi brevi e incisive.`;
 
   const prompt = `Brand: ${brand.name}. Obiettivo: ${objective}.
 Testo da ottimizzare:
@@ -378,7 +394,10 @@ ${baseText}
 Ritorna il testo raffinato e pronto per la pubblicazione su ${platform}.`;
   
   const result = await callAI(prompt, system, isPro);
-  return { text: result.text, sources: result.sources };
+  
+  const processedText = convertMarkdownToUnicodeBold(result.text);
+  
+  return { text: processedText, sources: result.sources };
 };
 
 export const analyzeImageAndGeneratePost = async (imageBase64: string, mimeType: string, baseText: string, brand: BrandKB, platform: Platform, isPro: boolean = false): Promise<{text: string, sources: GroundingSource[]}> => {

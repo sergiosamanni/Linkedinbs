@@ -23,18 +23,22 @@ import {
 } from 'lucide-react';
 
 const LI_DEFAULT_GUIDELINES = `Agisci come LinkedIn Content Strategist Senior.
-- NO MARKDOWN. Solo caratteri UNICODE BOLD per evidenziare.
+- NO MARKDOWN: Usa SOLO UNICODE BOLD per evidenziare. NON USARE MAI **.
+- Leggibilità: Frasi brevi e incisive. Paragrafi di massimo 2-3 righe.
+- Link: Se hai un link, mettilo SEMPRE nelle prime 3 righe.
 - Lunghezza: 1400+ caratteri.
 - Struttura: Hook forte, corpo a blocchi brevi, valore reale (insight), CTA.
 - Dati reali via Google Search.`;
 
 const LI_NEWSLETTER_GUIDELINES = `LINEE GUIDA NEWSLETTER LINKEDIN
 - Stile: Approfondito, autorevole, narrativo.
-- NO MARKDOWN. Usa unicode bold.`;
+- NO MARKDOWN: Usa SOLO UNICODE BOLD per evidenziare. NON USARE MAI **.
+- Leggibilità: Frasi brevi e incisive per non stancare il lettore.`;
 
 const LI_ARTICLE_GUIDELINES = `LINEE GUIDA ARTICOLI LINKEDIN
 - Stile: Saggistico ma leggibile.
-- NO MARKDOWN. Usa unicode bold.`;
+- NO MARKDOWN: Usa SOLO UNICODE BOLD per evidenziare. NON USARE MAI **.
+- Leggibilità: Frasi brevi e concetti chiari.`;
 
 const NL_DEFAULT_GUIDELINES = `GUIDELINES NEWSLETTER EMAIL
 - Stile: Personale e diretto (1:1).
