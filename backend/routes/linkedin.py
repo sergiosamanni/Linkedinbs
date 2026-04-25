@@ -36,7 +36,7 @@ async def get_linkedin_auth_url(project_id: str, current_user: dict = Depends(ge
         "client_id": li_auth.get("clientId"),
         "redirect_uri": redirect_uri,
         "state": state,
-        "scope": "w_member_social w_organization_social r_liteprofile r_organization_social" 
+        "scope": "w_member_social r_liteprofile" # Rimosso w_organization_social temporaneamente per errore di autorizzazione
     }
     
     query_string = urllib.parse.urlencode(params)
@@ -92,20 +92,10 @@ async def linkedin_callback(code: Optional[str] = None, state: Optional[str] = N
         person_urn = f"urn:li:person:{user_info['id']}"
         connected_as = user_info.get("localizedFirstName", "User")
 
-        # 3. Ottieni le Pagine Aziendali (Organizzazioni) gestite
-        # Usiamo il parametro q=roleAssignee per trovare le organizzazioni dove l'utente ha un ruolo
-        org_resp = await client.get(
-            "https://api.linkedin.com/v2/organizationAcls?q=roleAssignee&role=ADMINISTRATOR&projection=(elements*(organization~(localizedName)))",
-            headers=headers
-        )
-        
         managed_orgs = []
-        if org_resp.status_code == 200:
-            org_data = org_resp.json()
-            for elem in org_data.get("elements", []):
-                org_urn = elem.get("organization")
-                org_name = elem.get("organization~", {}).get("localizedName", "Pagina Aziendale")
-                managed_orgs.append({"urn": org_urn, "name": org_name})
+        # Le chiamate alle organizzazioni sono state disabilitate finché l'app LinkedIn
+        # non ottiene i permessi "w_organization_social" e "r_organization_social".
+        # org_resp = await client.get(...)
 
         # 4. Salva nel PROGETTO (Brand)
         expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
