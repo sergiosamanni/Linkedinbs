@@ -484,7 +484,7 @@ const BrandKBForm: React.FC<Props> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <FieldWrapper id="brandPersonality" label="Brand Personality" icon={User} data={data} refiningField={refiningField} handleRefine={handleRefine}>
+          <FieldWrapper id="brandPersonality" label="Brand Personality" icon={Users} data={data} refiningField={refiningField} handleRefine={handleRefine}>
             <input
               type="text"
               value={data.brandPersonality}
