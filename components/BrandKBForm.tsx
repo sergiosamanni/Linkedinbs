@@ -286,8 +286,6 @@ const BrandKBForm: React.FC<Props> = ({
         </div>
       </section>
 
-      </section>
-
       {/* 1. Knowledge Vault */}
       <section className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm space-y-10">
         <div className="flex items-center space-x-5 border-b border-slate-50 pb-8">
