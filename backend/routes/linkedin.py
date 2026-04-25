@@ -49,14 +49,20 @@ async def linkedin_callback(code: Optional[str] = None, state: Optional[str] = N
     
     db = get_db()
     
+    from bson import ObjectId
+    
     try:
         user_id, project_id = state.split(":")
     except ValueError:
         return {"error": "Stato non valido"}
 
-    user = await db.users.find_one({"_id": user_id})
+    try:
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+    except Exception:
+        user = await db.users.find_one({"_id": user_id}) # Fallback per ID non-ObjectId
+        
     if not user:
-        return {"error": "Utente non trovato"}
+        return {"error": f"Utente non trovato nel database per ID: {user_id}"}
     
     user_obj = UserInDB(**user)
     if not user_obj.linkedinAuth or not user_obj.linkedinAuth.clientId or not user_obj.linkedinAuth.clientSecret:
@@ -99,8 +105,14 @@ async def linkedin_callback(code: Optional[str] = None, state: Optional[str] = N
 
         # 4. Salva nel PROGETTO (Brand)
         expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
+        
+        try:
+            update_query = {"$or": [{"_id": ObjectId(project_id)}, {"_id": project_id}]}
+        except Exception:
+            update_query = {"_id": project_id}
+            
         await db.projects.update_one(
-            {"_id": project_id},
+            update_query,
             {"$set": {
                 "linkedinAuth": {
                     "accessToken": access_token,
@@ -123,7 +135,12 @@ async def publish_to_linkedin(
     current_user: dict = Depends(get_current_user)
 ):
     db = get_db()
-    project = await db.projects.find_one({"_id": project_id})
+    try:
+        project_query = {"$or": [{"_id": ObjectId(project_id)}, {"_id": project_id}]}
+    except Exception:
+        project_query = {"_id": project_id}
+        
+    project = await db.projects.find_one(project_query)
     if not project or project.get("userId") != current_user["id"]:
         raise HTTPException(status_code=404, detail="Progetto non trovato")
     
@@ -166,7 +183,13 @@ async def publish_to_linkedin(
 @router.get("/status/{project_id}")
 async def get_linkedin_status(project_id: str, current_user: dict = Depends(get_current_user)):
     db = get_db()
-    project = await db.projects.find_one({"_id": project_id})
+    
+    try:
+        project_query = {"$or": [{"_id": ObjectId(project_id)}, {"_id": project_id}]}
+    except Exception:
+        project_query = {"_id": project_id}
+        
+    project = await db.projects.find_one(project_query)
     if not project:
         return {"connected": False}
     
@@ -192,8 +215,16 @@ async def select_linkedin_urn(project_id: str, data: dict, current_user: dict = 
     if not urn:
         raise HTTPException(status_code=400, detail="URN richiesto")
     
+    try:
+        project_query = {"$or": [{"_id": ObjectId(project_id)}, {"_id": project_id}]}
+    except Exception:
+        project_query = {"_id": project_id}
+
+    # Aggiungi userId al controllo di sicurezza
+    project_query["userId"] = current_user["id"]
+
     result = await db.projects.update_one(
-        {"_id": project_id, "userId": current_user["id"]},
+        project_query,
         {"$set": {"linkedinAuth.selectedUrn": urn}}
     )
     
