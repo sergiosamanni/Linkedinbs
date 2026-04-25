@@ -134,5 +134,6 @@ class BrandProject(BaseModel):
     personas: List[Persona] = []
     pillars: List[Pillar] = []
     strategies: List[MonthlyStrategy] = []
+    linkedinAuth: Optional[Dict[str, Any]] = None
     createdAt: datetime = Field(default_factory=datetime.utcnow)
     updatedAt: datetime = Field(default_factory=datetime.utcnow)

@@ -3,11 +3,11 @@ import React, { useState, useRef } from 'react';
 import { BrandKB, BrandFile } from '../types';
 import { refineBrandField } from '../services/geminiService';
 import { 
-  Sparkles, Loader2, Globe, Database, Type, MessageSquare, Info, 
-  Target, Rocket, ShieldCheck, Heart, Eye, PenTool, Users, User,
-  FileUp, FileText, FileSpreadsheet, Image as ImageIcon, Trash2, X,
-  FileCode, CheckCircle2, AlertCircle, Camera, UploadCloud, Linkedin
+  FileCode, CheckCircle2, AlertCircle, Camera, UploadCloud, Linkedin,
+  Link2, Info
 } from 'lucide-react';
+import { API_URL, getAuthHeaders } from '../services/apiConfig';
+import { User, BrandProject } from '../types';
 
 interface Props {
   data: BrandKB;
@@ -15,6 +15,9 @@ interface Props {
   collaborators?: string[];
   onChangeCollaborators?: (collabs: string[]) => void;
   isOwner?: boolean;
+  project?: BrandProject;
+  onUpdateProject?: (project: BrandProject) => void;
+  user?: User;
 }
 
 interface FieldWrapperProps {
@@ -59,9 +62,13 @@ const FieldWrapper: React.FC<FieldWrapperProps> = ({
   </div>
 );
 
-const BrandKBForm: React.FC<Props> = ({ data, onChange, collaborators = [], onChangeCollaborators, isOwner = true }) => {
-  const [refiningField, setRefiningField] = useState<string | null>(null);
+const BrandKBForm: React.FC<Props> = ({ 
+  data, onChange, collaborators = [], onChangeCollaborators, isOwner = true,
+  project, onUpdateProject, user
+}) => {
   const [uploading, setUploading] = useState(false);
+  const [refiningField, setRefiningField] = useState<keyof BrandKB | null>(null);
+  const [liLoading, setLiLoading] = useState(false);
   const [newCollab, setNewCollab] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -228,6 +235,55 @@ const BrandKBForm: React.FC<Props> = ({ data, onChange, collaborators = [], onCh
             </div>
             <input type="file" ref={faviconInputRef} hidden accept="image/*" onChange={(e) => handleAssetUpload(e, 'faviconUrl')} />
           </div>
+        </div>
+      </section>
+
+      {/* 5. LinkedIn Integration */}
+      <section className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm space-y-10">
+        <div className="flex items-center space-x-5 border-b border-slate-50 pb-8">
+          <div className="p-4 bg-blue-600 text-white rounded-3xl shadow-xl shadow-blue-100">
+            <Linkedin size={28} />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black text-slate-900">LinkedIn Publishing</h3>
+            <p className="text-sm text-slate-500 font-medium">Collega questo brand al suo account o pagina LinkedIn specifica.</p>
+          </div>
+        </div>
+
+        <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-1 text-center md:text-left">
+            {project?.linkedinAuth?.accessToken ? (
+              <>
+                <p className="text-sm font-black text-emerald-600 uppercase flex items-center justify-center md:justify-start gap-2">
+                  <CheckCircle2 size={16} /> Brand Connesso
+                </p>
+                <p className="text-xs text-slate-500 font-bold tracking-tight">
+                  Collegato come: <span className="text-slate-900">{project.linkedinAuth.connectedAs || "Account LinkedIn"}</span>
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Nessuna Connessione</p>
+                <p className="text-xs text-slate-500 font-medium">Connetti LinkedIn per abilitare la pubblicazione diretta.</p>
+              </>
+            )}
+          </div>
+
+          <button 
+            onClick={handleConnectLinkedin}
+            disabled={liLoading}
+            className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${project?.linkedinAuth?.accessToken ? 'bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-100'}`}
+          >
+            {liLoading ? <Loader2 size={16} className="animate-spin" /> : <Linkedin size={16} />}
+            <span>{project?.linkedinAuth?.accessToken ? "Ricollega Account" : "Connetti LinkedIn"}</span>
+          </button>
+        </div>
+
+        <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-start space-x-3">
+          <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
+          <p className="text-[10px] text-blue-700 font-medium leading-relaxed italic">
+            Nota: La connessione è specifica per questo brand. Se gestisci più brand, dovrai connettere ciascuno al proprio account LinkedIn corrispondente.
+          </p>
         </div>
       </section>
 

@@ -98,6 +98,37 @@ const App: React.FC = () => {
   const [suggestedSectors, setSuggestedSectors] = useState<SuggestedSector[]>([]);
   const [selectedSectorKeys, setSelectedSectorKeys] = useState<string[]>([]);
   const [isBatchImporting, setIsBatchImporting] = useState(false);
+  const [isLILoading, setIsLILoading] = useState(false);
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    const search = window.location.search;
+    if (path.includes('/api/linkedin/callback')) {
+      setIsLILoading(true);
+      // Inoltra al backend di Railway
+      const params = new URLSearchParams(search);
+      const code = params.get('code');
+      const state = params.get('state');
+      
+      if (code && state) {
+        fetch(`${API_URL}/api/linkedin/callback?code=${code}&state=${state}`)
+          .then(res => {
+            if (res.ok) {
+              // Il backend fa già il redirect, ma noi siamo in una SPA
+              // Quindi leggiamo l'URL di destinazione o semplicemente resettiamo il path
+              window.location.href = '/?linkedin=success';
+            } else {
+              alert("Errore durante la connessione LinkedIn.");
+              window.location.href = '/';
+            }
+          })
+          .catch(() => {
+            alert("Errore di rete.");
+            window.location.href = '/';
+          });
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -234,6 +265,16 @@ const App: React.FC = () => {
     setSelectedSectorKeys([]);
   };
 
+  if (isLILoading) return (
+    <div className="fixed inset-0 bg-slate-900 flex flex-col items-center justify-center text-white space-y-6 z-[200]">
+      <Loader2 size={48} className="animate-spin text-blue-500" />
+      <div className="text-center">
+        <h2 className="text-2xl font-black">Connessione a LinkedIn...</h2>
+        <p className="text-slate-400">Stiamo finalizzando l'autorizzazione del brand.</p>
+      </div>
+    </div>
+  );
+
   if (!user) return <Auth onAuthSuccess={u => setUser(u)} />;
 
   return (
@@ -265,6 +306,9 @@ const App: React.FC = () => {
               data={brand} 
               onChange={setBrand} 
               isOwner={activeProject.userId === user.id}
+              project={activeProject}
+              onUpdateProject={(updated) => setProjects(prev => prev.map(p => p.id === updated.id ? updated : p))}
+              user={user}
             />
           )}
           

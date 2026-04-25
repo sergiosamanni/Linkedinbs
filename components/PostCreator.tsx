@@ -32,7 +32,7 @@ const PostCreator: React.FC<Props> = ({ brand, post, persona, pillar, onUpdate, 
     if (!post.fullContent) return;
     setPublishing(true);
     try {
-      const resp = await fetch(`${API_URL}/api/linkedin/publish`, {
+      const resp = await fetch(`${API_URL}/api/linkedin/publish?project_id=${project.id}`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
