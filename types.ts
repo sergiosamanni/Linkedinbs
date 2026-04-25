@@ -178,6 +178,8 @@ export interface BrandProject {
     expiresAt: string;
     personUrn: string;
     connectedAs?: string;
+    managedOrgs?: { urn: string; name: string }[];
+    selectedUrn?: string;
   };
 }
 

@@ -95,6 +95,35 @@ const BrandKBForm: React.FC<Props> = ({
     }
   };
 
+  const handleSelectUrn = async (urn: string) => {
+    if (!project) return;
+    setLiLoading(true);
+    try {
+      const resp = await fetch(`${API_URL}/api/linkedin/select_urn/${project.id}`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ urn })
+      });
+      if (resp.ok) {
+        if (onUpdateProject) {
+          onUpdateProject({
+            ...project,
+            linkedinAuth: {
+              ...(project.linkedinAuth as any),
+              selectedUrn: urn
+            }
+          });
+        }
+      } else {
+        alert("Errore durante la selezione della pagina.");
+      }
+    } catch (e) {
+      alert("Errore di connessione.");
+    } finally {
+      setLiLoading(false);
+    }
+  };
+
   const addCollaborator = () => {
     if (newCollab && !collaborators.includes(newCollab) && onChangeCollaborators) {
       onChangeCollaborators([...collaborators, newCollab.toLowerCase()]);
@@ -205,6 +234,21 @@ const BrandKBForm: React.FC<Props> = ({
                 <p className="text-xs text-slate-500 font-bold tracking-tight">
                   Collegato come: <span className="text-slate-900">{project.linkedinAuth.connectedAs || "Account LinkedIn"}</span>
                 </p>
+                {project.linkedinAuth.managedOrgs && project.linkedinAuth.managedOrgs.length > 0 && (
+                  <div className="mt-4 flex flex-col items-center md:items-start space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pubblica come:</label>
+                    <select 
+                      value={project.linkedinAuth.selectedUrn || project.linkedinAuth.personUrn}
+                      onChange={(e) => handleSelectUrn(e.target.value)}
+                      className="text-xs font-bold bg-white border border-slate-200 rounded-xl px-4 py-2 outline-none focus:border-blue-500 transition-all"
+                    >
+                      <option value={project.linkedinAuth.personUrn}>Profilo Personale</option>
+                      {project.linkedinAuth.managedOrgs.map(org => (
+                        <option key={org.urn} value={org.urn}>{org.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </>
             ) : (
               <>
