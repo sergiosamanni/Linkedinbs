@@ -5,8 +5,9 @@ import { generatePostContent, generateDeepVisualPrompt } from '../services/gemin
 import { 
   Copy, Check, Loader2, Sparkles, Pencil, CheckCircle2, 
   Save, Palette, FileText, Link2, Linkedin, Mail, Newspaper, Target,
-  Trash2, RefreshCw
+  Trash2, RefreshCw, Link2
 } from 'lucide-react';
+import { API_URL, getAuthHeaders } from '../services/apiConfig';
 
 interface Props {
   brand: BrandKB;
@@ -25,6 +26,33 @@ const PostCreator: React.FC<Props> = ({ brand, post, persona, pillar, onUpdate, 
   const [copied, setCopied] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+
+  const handlePublishToLinkedin = async () => {
+    if (!post.fullContent) return;
+    setPublishing(true);
+    try {
+      const resp = await fetch(`${API_URL}/api/linkedin/publish`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          text: post.fullContent
+        })
+      });
+      
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.detail || "Errore durante la pubblicazione");
+      }
+      
+      alert("Post inviato con successo a LinkedIn!");
+      onUpdate({ ...post, status: 'published' });
+    } catch (e: any) {
+      alert("Errore: " + e.message);
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   const isPublished = post.status === 'published';
   const platformBtn = post.platform === 'newsletter' ? 'bg-purple-600' : 'bg-blue-600';
@@ -188,11 +216,12 @@ const PostCreator: React.FC<Props> = ({ brand, post, persona, pillar, onUpdate, 
             {post.fullContent && (
               <div className="flex items-center gap-2 mb-4">
                 <button 
-                  onClick={() => alert("Funzione API LinkedIn in fase di configurazione. Presto potrai inviare questo post direttamente alle bozze!")}
-                  className="flex-1 py-2 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-800 transition-all"
+                  onClick={handlePublishToLinkedin} 
+                  disabled={publishing}
+                  className="flex-1 py-2 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-800 transition-all disabled:opacity-50"
                 >
-                  <Linkedin size={12} />
-                  Carica in Programmati
+                  {publishing ? <Loader2 className="animate-spin" size={12} /> : <Linkedin size={12} />}
+                  {publishing ? "Caricamento..." : "Carica in Programmati"}
                 </button>
                 <a 
                   href={brand.linkedinUrl || "https://www.linkedin.com/feed/"} 

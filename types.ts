@@ -25,6 +25,13 @@ export interface User {
   createdAt: string;
   apiKeys: ApiKeys;
   settings: UserSettings;
+  linkedinAuth?: {
+    clientId?: string;
+    clientSecret?: string;
+    accessToken?: string;
+    expiresAt?: string;
+    personUrn?: string;
+  };
 }
 
 export type Platform = 'linkedin' | 'newsletter';

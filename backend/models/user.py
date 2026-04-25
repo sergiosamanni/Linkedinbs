@@ -14,6 +14,13 @@ class UserSettings(BaseModel):
     preferredModel: str = "gemini-pro" # gemini-pro, gemini-flash, openai, anthropic, openrouter, deepseek
     useCustomKeys: bool = False
 
+class LinkedinAuth(BaseModel):
+    clientId: Optional[str] = None
+    clientSecret: Optional[str] = None
+    accessToken: Optional[str] = None
+    expiresAt: Optional[datetime] = None
+    personUrn: Optional[str] = None # L'ID unico dell'utente su LinkedIn
+
 class UserBase(BaseModel):
     name: str
     email: EmailStr
@@ -21,6 +28,7 @@ class UserBase(BaseModel):
     avatarUrl: Optional[str] = None
     apiKeys: ApiKeys = Field(default_factory=ApiKeys)
     settings: UserSettings = Field(default_factory=UserSettings)
+    linkedinAuth: Optional[LinkedinAuth] = Field(default_factory=LinkedinAuth)
 
 class UserCreate(UserBase):
     password: str
@@ -46,3 +54,4 @@ class UserUpdate(BaseModel):
     avatarUrl: Optional[str] = None
     apiKeys: Optional[ApiKeys] = None
     settings: Optional[UserSettings] = None
+    linkedinAuth: Optional[LinkedinAuth] = None

@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 
 from database import connect_to_mongo, close_mongo_connection, get_db
 from services.llm_service import llm_service
-from routes import auth, projects
+from routes import auth, projects, linkedin
 
 load_dotenv()
 
@@ -51,6 +51,7 @@ app.add_middleware(
 # Inclusion dei router
 app.include_router(auth.router)
 app.include_router(projects.router)
+app.include_router(linkedin.router, prefix="/api/linkedin", tags=["linkedin"])
 
 @app.get("/")
 async def root():

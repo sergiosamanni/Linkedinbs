@@ -4,8 +4,10 @@ import { User, ApiKeys, UserSettings as Settings } from '../types';
 import { authService } from '../services/authService';
 import { 
   Key, Save, Loader2, Cpu, ShieldCheck, Zap, 
-  Settings as SettingsIcon, Globe, Lock, BrainCircuit, Sparkles
+  Settings as SettingsIcon, Globe, Lock, BrainCircuit, Sparkles,
+  Linkedin, Info
 } from 'lucide-react';
+import { API_URL, getAuthHeaders } from '../services/apiConfig';
 
 interface Props {
   user: User;
@@ -18,6 +20,7 @@ const UserSettings: React.FC<Props> = ({ user, onUpdate }) => {
   
   const [apiKeys, setApiKeys] = useState<ApiKeys>(user.apiKeys || {});
   const [settings, setSettings] = useState<Settings>(user.settings || { preferredModel: 'gemini', useCustomKeys: false });
+  const [linkedinAuth, setLinkedinAuth] = useState(user.linkedinAuth || {});
 
   const handleSave = async () => {
     setLoading(true);
@@ -25,7 +28,8 @@ const UserSettings: React.FC<Props> = ({ user, onUpdate }) => {
     try {
       const updatedUser = await authService.updateSettings({
         apiKeys,
-        settings
+        settings,
+        linkedinAuth
       });
       onUpdate(updatedUser);
       setSuccess(true);
@@ -34,6 +38,22 @@ const UserSettings: React.FC<Props> = ({ user, onUpdate }) => {
       alert("Errore nel salvataggio: " + e.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleConnectLinkedin = async () => {
+    try {
+      const resp = await fetch(`${API_URL}/api/linkedin/auth_url`, {
+        headers: getAuthHeaders()
+      });
+      const data = await resp.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Errore nel recupero dell'URL di autorizzazione.");
+      }
+    } catch (e) {
+      alert("Errore di connessione a LinkedIn.");
     }
   };
 
@@ -178,6 +198,63 @@ const UserSettings: React.FC<Props> = ({ user, onUpdate }) => {
                 {loading ? <Loader2 size={16} className="animate-spin" /> : success ? <ShieldCheck size={16} className="text-emerald-400" /> : <Save size={16} />}
                 <span>{loading ? 'Salvataggio...' : success ? 'Impostazioni Salvate!' : 'Salva Impostazioni'}</span>
               </button>
+            </div>
+          </section>
+
+          <section className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm space-y-8">
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center">
+              <Linkedin size={14} className="mr-2 text-blue-600" /> LinkedIn App Credentials
+            </h3>
+            
+            <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100 flex items-start space-x-3">
+              <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
+              <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
+                Per caricare i post direttamente, devi creare un'app su <a href="https://www.linkedin.com/developers/" target="_blank" className="font-black underline">LinkedIn Developers</a> con il prodotto "Share on LinkedIn". Incolla qui il tuo Client ID e Secret.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">LinkedIn Client ID</label>
+                <input
+                  type="text"
+                  value={linkedinAuth.clientId || ''}
+                  onChange={(e) => setLinkedinAuth({ ...linkedinAuth, clientId: e.target.value })}
+                  placeholder="Incolla Client ID"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-medium focus:bg-white focus:border-blue-500 outline-none transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">LinkedIn Client Secret</label>
+                <input
+                  type="password"
+                  value={linkedinAuth.clientSecret || ''}
+                  onChange={(e) => setLinkedinAuth({ ...linkedinAuth, clientSecret: e.target.value })}
+                  placeholder="Incolla Client Secret"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-medium focus:bg-white focus:border-blue-500 outline-none transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 pt-2">
+              <button
+                onClick={handleSave}
+                disabled={loading}
+                className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center space-x-3 hover:bg-slate-200 transition-all active:scale-95 disabled:opacity-50"
+              >
+                <Save size={14} />
+                <span>Salva Credenziali App</span>
+              </button>
+              
+              {user.linkedinAuth?.clientId && (
+                <button
+                  onClick={handleConnectLinkedin}
+                  className={`flex-1 py-4 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center space-x-3 transition-all active:scale-95 ${user.linkedinAuth?.accessToken ? 'bg-emerald-500' : 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-100'}`}
+                >
+                  <Linkedin size={14} />
+                  <span>{user.linkedinAuth?.accessToken ? 'Account Connesso ✓' : 'Connetti Account Personale'}</span>
+                </button>
+              )}
             </div>
           </section>
 
