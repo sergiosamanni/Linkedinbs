@@ -19,20 +19,21 @@ LINKEDIN_USER_INFO_URL = "https://api.linkedin.com/v2/me"
 LINKEDIN_POSTS_URL = "https://api.linkedin.com/rest/posts"
 
 @router.get("/auth_url")
-async def get_linkedin_auth_url(project_id: str, current_user: UserInDB = Depends(get_current_user)):
+async def get_linkedin_auth_url(project_id: str, current_user: dict = Depends(get_current_user)):
     # Le chiavi dell'app rimangono a livello utente (globali per la piattaforma)
-    if not current_user.linkedinAuth or not current_user.linkedinAuth.clientId:
+    li_auth = current_user.get("linkedinAuth", {})
+    if not li_auth or not li_auth.get("clientId"):
         raise HTTPException(status_code=400, detail="Configura prima Client ID e Client Secret nelle impostazioni generali.")
     
     origin = os.getenv("FRONTEND_URL", "https://linkedinbs.vercel.app")
     redirect_uri = f"{origin}/api/linkedin/callback"
     
     # Lo 'state' ora contiene sia l'utente che il progetto specifico
-    state = f"{current_user.id}:{project_id}"
+    state = f"{current_user['id']}:{project_id}"
     
     params = {
         "response_type": "code",
-        "client_id": current_user.linkedinAuth.clientId,
+        "client_id": li_auth.get("clientId"),
         "redirect_uri": redirect_uri,
         "state": state,
         "scope": "w_member_social r_liteprofile" # Possiamo aggiungere w_organization_social se serve
@@ -108,11 +109,11 @@ async def linkedin_callback(code: str, state: str):
 async def publish_to_linkedin(
     project_id: str,
     post_data: dict, 
-    current_user: UserInDB = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
     db = get_db()
     project = await db.projects.find_one({"_id": project_id})
-    if not project or project.get("userId") != current_user.id:
+    if not project or project.get("userId") != current_user["id"]:
         raise HTTPException(status_code=404, detail="Progetto non trovato")
     
     li_auth = project.get("linkedinAuth")
@@ -149,7 +150,7 @@ async def publish_to_linkedin(
     return {"status": "success"}
 
 @router.get("/status/{project_id}")
-async def get_linkedin_status(project_id: str, current_user: UserInDB = Depends(get_current_user)):
+async def get_linkedin_status(project_id: str, current_user: dict = Depends(get_current_user)):
     db = get_db()
     project = await db.projects.find_one({"_id": project_id})
     if not project:
