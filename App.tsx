@@ -115,8 +115,8 @@ const App: React.FC = () => {
           .then(res => {
             if (res.ok) {
               // Il backend fa già il redirect, ma noi siamo in una SPA
-              // Quindi leggiamo l'URL di destinazione o semplicemente resettiamo il path
-              window.location.href = '/?linkedin=success';
+              const projId = state.split(':')[1];
+              window.location.href = `/?project=${projId}&linkedin=success`;
             } else {
               alert("Errore durante la connessione LinkedIn.");
               window.location.href = '/';
@@ -136,7 +136,17 @@ const App: React.FC = () => {
       storageService.getProjects(user.id).then(cloudProjects => {
         const loadedProjects = cloudProjects || [];
         setProjects(loadedProjects);
-        if (loadedProjects.length > 0) setActiveProjectId(loadedProjects[0].id);
+        
+        // Se c'è un progetto specificato nell'URL (es. dopo redirect LinkedIn), selezionalo
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlProjId = urlParams.get('project');
+        
+        if (urlProjId && loadedProjects.some(p => p.id === urlProjId)) {
+          setActiveProjectId(urlProjId);
+        } else if (loadedProjects.length > 0) {
+          setActiveProjectId(loadedProjects[0].id);
+        }
+        
         setFetchingProjects(false);
         setIsInitialized(true); 
       });

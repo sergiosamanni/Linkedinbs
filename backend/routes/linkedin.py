@@ -121,7 +121,7 @@ async def linkedin_callback(code: str, state: str):
         )
     
     # Redirect al progetto specifico nel frontend
-    return RedirectResponse(url=f"{origin}/calendar?project={project_id}&linkedin=success")
+    return RedirectResponse(url=f"{origin}/?project={project_id}&linkedin=success")
 
 @router.post("/publish")
 async def publish_to_linkedin(
