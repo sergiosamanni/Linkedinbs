@@ -212,7 +212,7 @@ const BrandKBForm: React.FC<Props> = ({
   return (
     <div className="space-y-12 animate-in fade-in duration-500 pb-20">
       
-      {/* 5. LinkedIn Integration - MOVED TO TOP */}
+      {/* 5. LinkedIn Integration - TEMPORARY HIDDEN
       <section className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm space-y-10">
         <div className="flex items-center space-x-5 border-b border-slate-50 pb-8">
           <div className="p-4 bg-blue-600 text-white rounded-3xl shadow-xl shadow-blue-100">
@@ -275,6 +275,7 @@ const BrandKBForm: React.FC<Props> = ({
           </p>
         </div>
       </section>
+      */}
       {/* 0. Branding & Assets */}
       <section className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm space-y-10">
         <div className="flex items-center space-x-5 border-b border-slate-50 pb-8">

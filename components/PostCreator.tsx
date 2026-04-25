@@ -215,6 +215,7 @@ const PostCreator: React.FC<Props> = ({ brand, post, persona, pillar, onUpdate, 
 
             {post.fullContent && (
               <div className="flex items-center gap-2 mb-4">
+                {/* BOTTONE PUBBLICAZIONE TEMPORANEAMENTE NASCOSTO
                 <button 
                   onClick={handlePublishToLinkedin} 
                   disabled={publishing}
@@ -223,14 +224,16 @@ const PostCreator: React.FC<Props> = ({ brand, post, persona, pillar, onUpdate, 
                   {publishing ? <Loader2 className="animate-spin" size={12} /> : <Linkedin size={12} />}
                   {publishing ? "Caricamento..." : "Carica in Programmati"}
                 </button>
+                */}
                 <a 
                   href={brand.linkedinUrl || "https://www.linkedin.com/feed/"} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="px-3 py-2 border border-slate-200 text-slate-400 rounded-xl hover:bg-slate-50 hover:text-blue-600 transition-all"
+                  className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-blue-700 transition-all"
                   title={brand.linkedinUrl ? `Vai su ${brand.name} LinkedIn` : "Vai su LinkedIn"}
                 >
-                  <Link2 size={14} />
+                  <Link2 size={12} />
+                  Apri Pagina
                 </a>
               </div>
             )}
