@@ -64,9 +64,12 @@ async def linkedin_callback(code: Optional[str] = None, state: Optional[str] = N
     if not user:
         return {"error": f"Utente non trovato nel database per ID: {user_id}"}
     
-    user_obj = UserInDB(**user)
-    if not user_obj.linkedinAuth or not user_obj.linkedinAuth.clientId or not user_obj.linkedinAuth.clientSecret:
+    li_auth = user.get("linkedinAuth", {})
+    if not li_auth or not li_auth.get("clientId") or not li_auth.get("clientSecret"):
         return {"error": "Credenziali LinkedIn App mancanti nell'utente"}
+        
+    client_id = li_auth.get("clientId")
+    client_secret = li_auth.get("clientSecret")
 
     origin = os.getenv("FRONTEND_URL", "https://linkedinbs.vercel.app")
     redirect_uri = f"{origin}/api/linkedin/callback"
@@ -77,8 +80,8 @@ async def linkedin_callback(code: Optional[str] = None, state: Optional[str] = N
             "grant_type": "authorization_code",
             "code": code,
             "redirect_uri": redirect_uri,
-            "client_id": user_obj.linkedinAuth.clientId,
-            "client_secret": user_obj.linkedinAuth.clientSecret
+            "client_id": client_id,
+            "client_secret": client_secret
         })
         
         if token_resp.status_code != 200:
