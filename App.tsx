@@ -104,29 +104,8 @@ const App: React.FC = () => {
     const path = window.location.pathname;
     const search = window.location.search;
     if (path.includes('/api/linkedin/callback')) {
-      setIsLILoading(true);
-      // Inoltra al backend di Railway
-      const params = new URLSearchParams(search);
-      const code = params.get('code');
-      const state = params.get('state');
-      
-      if (code && state) {
-        fetch(`${API_URL}/api/linkedin/callback?code=${code}&state=${state}`)
-          .then(res => {
-            if (res.ok) {
-              // Il backend fa già il redirect, ma noi siamo in una SPA
-              const projId = state.split(':')[1];
-              window.location.href = `/?project=${projId}&linkedin=success`;
-            } else {
-              alert("Errore durante la connessione LinkedIn.");
-              window.location.href = '/';
-            }
-          })
-          .catch(() => {
-            alert("Errore di rete.");
-            window.location.href = '/';
-          });
-      }
+      // Reindirizza direttamente al backend per gestire il callback e il successivo redirect
+      window.location.href = `${API_URL}/api/linkedin/callback${search}`;
     }
   }, []);
 
