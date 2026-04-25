@@ -1,9 +1,9 @@
 
-import { User, BrandProject } from '../types';
+import { AppUser, BrandProject } from '../types';
 import { API_URL, getAuthHeaders } from './apiConfig';
 
 export const adminService = {
-  getUsers: async (): Promise<User[]> => {
+  getUsers: async (): Promise<AppUser[]> => {
     const response = await fetch(`${API_URL}/auth/users`, {
       headers: getAuthHeaders()
     });
@@ -19,7 +19,7 @@ export const adminService = {
     if (!response.ok) throw new Error("Errore nell'eliminazione utente");
   },
 
-  registerUser: async (userData: any): Promise<User> => {
+  registerUser: async (userData: any): Promise<AppUser> => {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
 import { authService } from '../services/authService';
-import { User } from '../types';
+import { AppUser } from '../types';
 import { Loader2, Mail, Lock, User as UserIcon, ArrowRight, ShieldCheck } from 'lucide-react';
 
 interface AuthProps {
-  onAuthSuccess: (user: User) => void;
+  onAuthSuccess: (user: AppUser) => void;
 }
 
 const Auth: React.FC<AuthProps> = ({ onAuthSuccess }) => {

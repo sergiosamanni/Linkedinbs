@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { View, BrandProject, User } from '../types';
+import { View, BrandProject, AppUser } from '../types';
 import { 
   LayoutDashboard, Users, Database, Target, CalendarDays, 
   MessageSquarePlus, Plus, Briefcase, Trash2, LogOut, 
@@ -20,7 +20,7 @@ interface LayoutProps {
   onProjectDelete: (id: string) => void;
   onUpdateProjectBrandLogo: (projectId: string, logoUrl: string) => void;
   onUpdateProjectBrandFavicon: (projectId: string, faviconUrl: string) => void;
-  user: User;
+  user: AppUser;
   onLogout: () => void;
   isSaving?: boolean;
 }

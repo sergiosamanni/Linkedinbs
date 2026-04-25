@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { User, BrandProject } from '../types';
+import { AppUser, BrandProject } from '../types';
 import { adminService } from '../services/adminService';
 import { Plus, Trash2, UserPlus, Shield, Check, X, Building, Mail, User as UserIcon, Loader2, Users } from 'lucide-react';
 
@@ -11,7 +11,7 @@ interface Props {
 }
 
 const AdminUsersView: React.FC<Props> = ({ projects, onUpdateProject, onGlobalError }) => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<AppUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   
