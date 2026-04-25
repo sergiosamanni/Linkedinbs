@@ -32,12 +32,8 @@ async def validation_exception_handler(request, exc):
         content={"detail": exc.errors(), "body": exc.body},
     )
 
-# Configurazione CORS Avanzata
-origins = [
-    "https://linkedinbs.vercel.app",
-    "http://localhost:5173",
-    "http://localhost:3000",
-]
+# Configurazione CORS - Permissiva per risolvere blocchi su Railway/Vercel
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,

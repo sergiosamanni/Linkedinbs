@@ -5,7 +5,7 @@ import { API_URL, getAuthHeaders } from './apiConfig';
 export const storageService = {
   getProjects: async (userId: string): Promise<BrandProject[]> => {
     try {
-      const response = await fetch(`${API_URL}/projects/`, {
+      const response = await fetch(`${API_URL}/projects`, {
         headers: getAuthHeaders()
       });
       
@@ -35,7 +35,7 @@ export const storageService = {
   },
 
   saveProject: async (project: BrandProject): Promise<BrandProject> => {
-    const response = await fetch(`${API_URL}/projects/`, {
+    const response = await fetch(`${API_URL}/projects`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(project)
