@@ -4,9 +4,9 @@ from fastapi.responses import RedirectResponse
 import httpx
 from typing import Optional
 from datetime import datetime, timedelta
-from ..database import db
-from ..routes.auth import get_current_user
-from ..models.user import UserInDB, LinkedinAuth
+from database import db
+from routes.auth import get_current_user
+from models.user import UserInDB, LinkedinAuth
 import os
 import urllib.parse
 
