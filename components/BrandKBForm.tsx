@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import type { BrandKB, BrandFile, User, BrandProject } from '../types';
+import { BrandKB, BrandFile, User, BrandProject } from '../types';
 import { refineBrandField } from '../services/geminiService';
 import { 
   FileCode, CheckCircle2, AlertCircle, Camera, UploadCloud, Linkedin,
