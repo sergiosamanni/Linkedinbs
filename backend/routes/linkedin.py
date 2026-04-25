@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 import httpx
 from typing import Optional
 from datetime import datetime, timedelta
-from database import db
+from database import get_db
 from routes.auth import get_current_user
 from models.user import UserInDB, LinkedinAuth
 import os
@@ -43,6 +43,7 @@ async def get_linkedin_auth_url(current_user: UserInDB = Depends(get_current_use
 
 @router.get("/callback")
 async def linkedin_callback(code: str, state: str):
+    db = get_db()
     # 'state' contiene l'ID utente
     user = await db.users.find_one({"_id": state})
     if not user:
