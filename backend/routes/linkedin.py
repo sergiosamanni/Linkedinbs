@@ -15,7 +15,7 @@ router = APIRouter()
 
 LINKEDIN_AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
 LINKEDIN_TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
-LINKEDIN_USER_INFO_URL = "https://api.linkedin.com/v2/userinfo" # Aggiornato a OpenID Connect
+LINKEDIN_USER_INFO_URL = "https://api.linkedin.com/v2/me"
 LINKEDIN_POSTS_URL = "https://api.linkedin.com/rest/posts"
 
 @router.get("/auth_url")
@@ -36,7 +36,7 @@ async def get_linkedin_auth_url(project_id: str, current_user: dict = Depends(ge
         "client_id": li_auth.get("clientId"),
         "redirect_uri": redirect_uri,
         "state": state,
-        "scope": "w_member_social openid profile email" # Usando i nuovi permessi standard
+        "scope": "w_member_social r_liteprofile"
     }
     
     query_string = urllib.parse.urlencode(params)
@@ -89,9 +89,8 @@ async def linkedin_callback(code: Optional[str] = None, state: Optional[str] = N
             return {"error": "Errore recupero info profilo"}
         
         user_info = user_info_resp.json()
-        # OpenID Connect usa 'sub' invece di 'id' e 'given_name' al posto di 'localizedFirstName'
-        person_urn = f"urn:li:person:{user_info.get('sub')}"
-        connected_as = user_info.get("given_name", "User")
+        person_urn = f"urn:li:person:{user_info['id']}"
+        connected_as = user_info.get("localizedFirstName", "User")
 
         managed_orgs = []
         # Le chiamate alle organizzazioni sono state disabilitate finché l'app LinkedIn
