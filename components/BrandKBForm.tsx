@@ -75,6 +75,26 @@ const BrandKBForm: React.FC<Props> = ({
   const logoInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
 
+  const handleConnectLinkedin = async () => {
+    if (!project) return;
+    setLiLoading(true);
+    try {
+      const resp = await fetch(`${API_URL}/api/linkedin/auth_url?project_id=${project.id}`, {
+        headers: getAuthHeaders()
+      });
+      const resData = await resp.json();
+      if (resData.url) {
+        window.location.href = resData.url;
+      } else {
+        alert(resData.detail || "Errore nel recupero dell'URL di autorizzazione.");
+      }
+    } catch (e) {
+      alert("Errore di connessione a LinkedIn.");
+    } finally {
+      setLiLoading(false);
+    }
+  };
+
   const addCollaborator = () => {
     if (newCollab && !collaborators.includes(newCollab) && onChangeCollaborators) {
       onChangeCollaborators([...collaborators, newCollab.toLowerCase()]);
