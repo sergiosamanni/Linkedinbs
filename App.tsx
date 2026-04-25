@@ -16,6 +16,7 @@ import { analyzeCompetitors, suggestPersonas, suggestPillars, generateSinglePers
 import { BrandKB, Persona, Pillar, View, MonthlyStrategy, CalendarPost, BrandProject, AppUser, Platform, SuggestedSector } from './types';
 import { authService } from './services/authService';
 import { storageService } from './services/storageService';
+import { API_URL } from './services/apiConfig';
 import { 
   Plus, Trash2, Sparkles, Loader2, Search, Check, 
   X, TrendingUp, Zap, UserPlus, Linkedin, Mail, ArrowRight, Activity, Lock, Unlock, ShieldAlert, Newspaper, FileText, Shield, LayoutGrid, List,
