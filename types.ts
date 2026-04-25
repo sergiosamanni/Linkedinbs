@@ -16,7 +16,7 @@ export interface UserSettings {
 
 export type UserRole = 'admin' | 'user';
 
-export interface User {
+export interface AppUser {
   id: string;
   email: string;
   name: string;

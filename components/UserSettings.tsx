@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, ApiKeys, UserSettings as Settings } from '../types';
+import { AppUser, ApiKeys, UserSettings as Settings } from '../types';
 import { authService } from '../services/authService';
 import { 
   Key, Save, Loader2, Cpu, ShieldCheck, Zap, 
@@ -10,8 +10,8 @@ import {
 import { API_URL, getAuthHeaders } from '../services/apiConfig';
 
 interface Props {
-  user: User;
-  onUpdate: (user: User) => void;
+  user: AppUser;
+  onUpdate: (user: AppUser) => void;
 }
 
 const UserSettings: React.FC<Props> = ({ user, onUpdate }) => {

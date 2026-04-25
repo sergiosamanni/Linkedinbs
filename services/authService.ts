@@ -1,12 +1,12 @@
 
-import { User } from '../types';
+import { AppUser } from '../types';
 import { API_URL, getAuthHeaders } from './apiConfig';
 
 const AUTH_KEY = 'brand_auth_user';
 const TOKEN_KEY = 'brand_auth_token';
 
 export const authService = {
-  getCurrentUser: (): User | null => {
+  getCurrentUser: (): AppUser | null => {
     try {
       const saved = localStorage.getItem(AUTH_KEY);
       return saved ? JSON.parse(saved) : null;
@@ -20,7 +20,7 @@ export const authService = {
     return localStorage.getItem(TOKEN_KEY);
   },
 
-  login: async (email: string, pass: string): Promise<User> => {
+  login: async (email: string, pass: string): Promise<AppUser> => {
     const formData = new URLSearchParams();
     formData.append('username', email);
     formData.append('password', pass);
@@ -50,10 +50,10 @@ export const authService = {
     
     const user = await userResponse.json();
     localStorage.setItem(AUTH_KEY, JSON.stringify(user));
-    return user as User;
+    return user as AppUser;
   },
 
-  register: async (name: string, email: string, pass: string): Promise<User> => {
+  register: async (name: string, email: string, pass: string): Promise<AppUser> => {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -69,7 +69,7 @@ export const authService = {
     return authService.login(email, pass);
   },
 
-  updateSettings: async (updates: Partial<User>): Promise<User> => {
+  updateSettings: async (updates: Partial<AppUser>): Promise<AppUser> => {
     const response = await fetch(`${API_URL}/auth/settings`, {
       method: 'PUT',
       headers: getAuthHeaders(),
@@ -83,7 +83,7 @@ export const authService = {
 
     const updatedUser = await response.json();
     localStorage.setItem(AUTH_KEY, JSON.stringify(updatedUser));
-    return updatedUser as User;
+    return updatedUser as AppUser;
   },
 
   logout: () => {

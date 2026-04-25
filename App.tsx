@@ -13,7 +13,7 @@ import SuiteGuidelines from './components/SuiteGuidelines';
 import SuggestedSectorsModal from './components/SuggestedSectorsModal';
 import AdminUsersView from './components/AdminUsersView';
 import { analyzeCompetitors, suggestPersonas, suggestPillars, generateSinglePersonaDetails, generateSinglePillarDetails, suggestRelevantSectors } from './services/geminiService';
-import { BrandKB, Persona, Pillar, View, MonthlyStrategy, CalendarPost, BrandProject, User, Platform, SuggestedSector } from './types';
+import { BrandKB, Persona, Pillar, View, MonthlyStrategy, CalendarPost, BrandProject, AppUser, Platform, SuggestedSector } from './types';
 import { authService } from './services/authService';
 import { storageService } from './services/storageService';
 import { 
@@ -79,7 +79,7 @@ const createEmptyProject = (userId: string, name: string = 'Nuovo Brand'): Brand
 });
 
 const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(authService.getCurrentUser());
+  const [user, setUser] = useState<AppUser | null>(authService.getCurrentUser());
   const [activeView, setActiveView] = useState<View>('knowledge');
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [fetchingProjects, setFetchingProjects] = useState(false);

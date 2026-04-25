@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { BrandKB, BrandFile, User, BrandProject } from '../types';
+import { BrandKB, BrandFile, AppUser, BrandProject } from '../types';
 import { refineBrandField } from '../services/geminiService';
 import { 
   FileCode, CheckCircle2, AlertCircle, Camera, UploadCloud, Linkedin,
@@ -18,7 +18,7 @@ interface Props {
   isOwner?: boolean;
   project?: BrandProject;
   onUpdateProject?: (project: BrandProject) => void;
-  user?: User;
+  user?: AppUser;
 }
 
 interface FieldWrapperProps {
