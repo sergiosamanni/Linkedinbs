@@ -103,10 +103,13 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const path = window.location.pathname;
-    const search = window.location.search;
-    if (path.includes('/api/linkedin/callback')) {
-      // Reindirizza direttamente al backend per gestire il callback e il successivo redirect
-      window.location.href = `${API_URL}/api/linkedin/callback${search}`;
+    const searchParams = new URLSearchParams(window.location.search);
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+
+    if (path.includes('/api/linkedin/callback') && code && state) {
+      // Costruisci l'URL in modo esplicito per evitare che il browser tronchi i parametri
+      window.location.href = `${API_URL}/api/linkedin/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
     }
   }, []);
 

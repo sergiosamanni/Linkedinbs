@@ -43,7 +43,10 @@ async def get_linkedin_auth_url(project_id: str, current_user: dict = Depends(ge
     return {"url": f"{LINKEDIN_AUTH_URL}?{query_string}"}
 
 @router.get("/callback")
-async def linkedin_callback(code: str, state: str):
+async def linkedin_callback(code: Optional[str] = None, state: Optional[str] = None):
+    if not code or not state:
+        return {"error": "Parametri code o state mancanti", "received": {"code": code, "state": state}}
+    
     db = get_db()
     
     try:
