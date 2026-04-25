@@ -41,32 +41,29 @@ export interface BrandFile {
   id: string;
   name: string;
   mimeType: string;
-  data: string; // base64
+  data?: string;
   size: number;
+}
+
+export interface GroundingSource {
+  uri: string;
+  title: string;
 }
 
 export interface CompetitorDetail {
   name: string;
   url: string;
-  editorialPositioning: string;
   strengths: string[];
   weaknesses: string[];
-  contentPatterns: string;
-  analysisQuality?: string;
-  analysisNotes?: string;
+  contentStrategy: string;
+  estimatedFollowers: string;
+  postingFrequency: string;
 }
 
 export interface CompetitorGap {
   gap: string;
-  whyItMatters: string;
-  brandAdvantage: string;
-  priority?: string;
-  scores?: {
-    reality: number;
-    defensibility: number;
-    targetRelevance: number;
-    editorialLeverage: number;
-  };
+  opportunity: string;
+  priority: string;
 }
 
 export interface StrategicTip {
@@ -80,14 +77,13 @@ export interface CompetitorInsight {
   competitors: CompetitorDetail[];
   overallMarketGaps: CompetitorGap[];
   practicalStrategicTips: StrategicTip[];
-  strategicNotes?: string[];
-  sources?: GroundingSource[];
+  strategicNotes: string[];
 }
 
 export interface BrandKB {
   name: string;
   websiteUrl: string;
-  linkedinUrl: string;
+  linkedinUrl?: string;
   description: string;
   mission: string;
   usp: string;
@@ -97,14 +93,14 @@ export interface BrandKB {
   targetSummary: string;
   visualKeywords: string;
   linkedinGuidelines: string;
-  newsletterGuidelines: string;
   linkedinNewsletterGuidelines: string;
   linkedinArticleGuidelines: string;
+  newsletterGuidelines: string;
   linkedinPostsPerMonth: number;
   newsletterPostsPerMonth: number;
-  competitors: string[]; // Keep for legacy
-  competitorPostLinks?: string[]; // New
-  competitorArticleLinks?: string[]; // New
+  competitors: string[];
+  competitorPostLinks?: string[];
+  competitorArticleLinks?: string[];
   competitorPostInsights?: CompetitorInsight;
   competitorArticleInsights?: CompetitorInsight;
   logoUrl?: string;
@@ -177,11 +173,12 @@ export interface BrandProject {
   personas: Persona[];
   pillars: Pillar[];
   strategies: MonthlyStrategy[];
-}
-
-export interface GroundingSource {
-  uri: string;
-  title: string;
+  linkedinAuth?: {
+    accessToken: string;
+    expiresAt: string;
+    personUrn: string;
+    connectedAs?: string;
+  };
 }
 
 export interface CustomPost {
