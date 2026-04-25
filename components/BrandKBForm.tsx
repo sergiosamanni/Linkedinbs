@@ -1,13 +1,14 @@
 
 import React, { useState, useRef } from 'react';
-import { BrandKB, BrandFile } from '../types';
+import { BrandKB, BrandFile, User, BrandProject } from '../types';
 import { refineBrandField } from '../services/geminiService';
 import { 
   FileCode, CheckCircle2, AlertCircle, Camera, UploadCloud, Linkedin,
-  Link2, Info
+  Link2, Info, Sparkles, Loader2, Globe, Database, Type, MessageSquare,
+  Target, Rocket, ShieldCheck, Heart, Eye, PenTool, Users,
+  FileUp, FileText, FileSpreadsheet, Image as ImageIcon, Trash2, X
 } from 'lucide-react';
 import { API_URL, getAuthHeaders } from '../services/apiConfig';
-import { User, BrandProject } from '../types';
 
 interface Props {
   data: BrandKB;
