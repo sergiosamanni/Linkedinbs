@@ -162,6 +162,54 @@ const BrandKBForm: React.FC<Props> = ({
   return (
     <div className="space-y-12 animate-in fade-in duration-500 pb-20">
       
+      {/* 5. LinkedIn Integration - MOVED TO TOP */}
+      <section className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm space-y-10">
+        <div className="flex items-center space-x-5 border-b border-slate-50 pb-8">
+          <div className="p-4 bg-blue-600 text-white rounded-3xl shadow-xl shadow-blue-100">
+            <Linkedin size={28} />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black text-slate-900">LinkedIn Publishing</h3>
+            <p className="text-sm text-slate-500 font-medium">Collega questo brand al suo account o pagina LinkedIn specifica.</p>
+          </div>
+        </div>
+
+        <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-1 text-center md:text-left">
+            {project?.linkedinAuth?.accessToken ? (
+              <>
+                <p className="text-sm font-black text-emerald-600 uppercase flex items-center justify-center md:justify-start gap-2">
+                  <CheckCircle2 size={16} /> Brand Connesso
+                </p>
+                <p className="text-xs text-slate-500 font-bold tracking-tight">
+                  Collegato come: <span className="text-slate-900">{project.linkedinAuth.connectedAs || "Account LinkedIn"}</span>
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Nessuna Connessione</p>
+                <p className="text-xs text-slate-500 font-medium">Connetti LinkedIn per abilitare la pubblicazione diretta.</p>
+              </>
+            )}
+          </div>
+
+          <button 
+            onClick={handleConnectLinkedin}
+            disabled={liLoading}
+            className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${project?.linkedinAuth?.accessToken ? 'bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-100'}`}
+          >
+            {liLoading ? <Loader2 size={16} className="animate-spin" /> : <Linkedin size={16} />}
+            <span>{project?.linkedinAuth?.accessToken ? "Ricollega Account" : "Connetti LinkedIn"}</span>
+          </button>
+        </div>
+
+        <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-start space-x-3">
+          <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
+          <p className="text-[10px] text-blue-700 font-medium leading-relaxed italic">
+            Nota: La connessione è specifica per questo brand. Se gestisci più brand, dovrai connettere ciascuno al proprio account LinkedIn corrispondente.
+          </p>
+        </div>
+      </section>
       {/* 0. Branding & Assets */}
       <section className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm space-y-10">
         <div className="flex items-center space-x-5 border-b border-slate-50 pb-8">
@@ -238,53 +286,6 @@ const BrandKBForm: React.FC<Props> = ({
         </div>
       </section>
 
-      {/* 5. LinkedIn Integration */}
-      <section className="bg-white rounded-[2.5rem] p-10 border border-slate-200 shadow-sm space-y-10">
-        <div className="flex items-center space-x-5 border-b border-slate-50 pb-8">
-          <div className="p-4 bg-blue-600 text-white rounded-3xl shadow-xl shadow-blue-100">
-            <Linkedin size={28} />
-          </div>
-          <div>
-            <h3 className="text-2xl font-black text-slate-900">LinkedIn Publishing</h3>
-            <p className="text-sm text-slate-500 font-medium">Collega questo brand al suo account o pagina LinkedIn specifica.</p>
-          </div>
-        </div>
-
-        <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-1 text-center md:text-left">
-            {project?.linkedinAuth?.accessToken ? (
-              <>
-                <p className="text-sm font-black text-emerald-600 uppercase flex items-center justify-center md:justify-start gap-2">
-                  <CheckCircle2 size={16} /> Brand Connesso
-                </p>
-                <p className="text-xs text-slate-500 font-bold tracking-tight">
-                  Collegato come: <span className="text-slate-900">{project.linkedinAuth.connectedAs || "Account LinkedIn"}</span>
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Nessuna Connessione</p>
-                <p className="text-xs text-slate-500 font-medium">Connetti LinkedIn per abilitare la pubblicazione diretta.</p>
-              </>
-            )}
-          </div>
-
-          <button 
-            onClick={handleConnectLinkedin}
-            disabled={liLoading}
-            className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-3 ${project?.linkedinAuth?.accessToken ? 'bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-100'}`}
-          >
-            {liLoading ? <Loader2 size={16} className="animate-spin" /> : <Linkedin size={16} />}
-            <span>{project?.linkedinAuth?.accessToken ? "Ricollega Account" : "Connetti LinkedIn"}</span>
-          </button>
-        </div>
-
-        <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-start space-x-3">
-          <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
-          <p className="text-[10px] text-blue-700 font-medium leading-relaxed italic">
-            Nota: La connessione è specifica per questo brand. Se gestisci più brand, dovrai connettere ciascuno al proprio account LinkedIn corrispondente.
-          </p>
-        </div>
       </section>
 
       {/* 1. Knowledge Vault */}
